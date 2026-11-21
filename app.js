@@ -6,7 +6,10 @@ const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : nu
 const $ = id => document.getElementById(id);
 const audio = $("audio");
 let tracks = [], currentIndex = -1, playlists = JSON.parse(localStorage.getItem("nova_playlists") || "[]");
-
+let playQueue = [];
+let queueIndex = -1;
+let repeatQueue = false;
+let shuffleQueue = false;
 function toast(msg){$("toast").textContent=msg;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2400)}
 function time(s){if(!Number.isFinite(s))return "0:00";return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`}
 function openModal(id){$(id).classList.add("open")}
@@ -14,7 +17,18 @@ function closeModal(id){$(id).classList.remove("open")}
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
 $("adminOpen").onclick=()=>{openModal("adminModal");refreshSession()};
 $("newPlaylist").onclick=()=>openModal("playlistModal");
+function addToQueue(index){
+ const song=tracks[index];
+ if(!song)return;
 
+ if(playQueue.some(t=>t.id===song.id)){
+  toast("Esta canción ya está en la cola.");
+  return;
+ }
+
+ playQueue.push(song);
+ toast("Añadida a la cola: "+song.title);
+}
 function renderTracks(){
  const q=$("search").value.toLowerCase();
  const shown=tracks.filter(t=>(t.title+" "+(t.artist||"")+" "+(t.album||"")).toLowerCase().includes(q));
@@ -22,10 +36,11 @@ function renderTracks(){
  $("trackGrid").innerHTML=shown.length?shown.map(t=>{
   const idx=tracks.indexOf(t), cover=t.cover_url?`background-image:url('${escapeAttr(t.cover_url)}')`:"";
   const subtitle=[t.artist||"Artista independiente",t.album].filter(Boolean).join(" · ");
-  return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${t.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${idx}">▶</button></div><div class="track-info"><b>${escapeHtml(t.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-play="${idx}">▶ Escuchar</button><a href="https://nova-mega-server.onrender.com/download?id=${encodeURIComponent(t.id)}">↓ Descargar</a><button data-add="${idx}">＋ Playlist</button></div></div></article>`;
+  return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${t.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${idx}">▶</button></div><div class="track-info"><b>${escapeHtml(t.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-play="${idx}">▶ Escuchar</button><a href="https://nova-mega-server.onrender.com/download?id=${encodeURIComponent(t.id)}">↓ Descargar</a><button data-add="${idx}">＋ Playlist</button><button data-queue="${idx}">＋ Cola</button></div></div></article>`;
  }).join(""):`<div class="empty-state"><div class="empty-icon">♫</div><h3>${tracks.length?"No encontramos esa canción":"Tu escenario está listo"}</h3><p>${tracks.length?"Prueba con otro nombre, artista o álbum.":"Las canciones que publiques aparecerán aquí."}</p></div>`;
  document.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>playTrack(Number(b.dataset.play)));
  document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addTrackToPlaylist(Number(b.dataset.add)));
+ document.querySelectorAll("[data-queue]").forEach(b=>b.onclick=()=>addToQueue(Number(b.dataset.queue)));
 }
 function escapeHtml(s=""){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function escapeAttr(s=""){return escapeHtml(s)}
