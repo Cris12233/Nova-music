@@ -63,7 +63,19 @@
     <section id="trackGrid" class="track-grid">
       <div class="empty-state"><div class="empty-icon">♫</div><h3>Tu escenario está listo</h3><p>Las canciones que publiques aparecerán aquí.</p></div>
     </section>
+    <section class="playlist-section" id="favoritesSection">
+  <div class="section-head compact">
+    <div>
+      <p class="eyebrow">TU MÚSICA PREFERIDA</p>
+      <h2>❤️ Mis favoritos</h2>
+    </div>
+    <span id="favoriteCount">0 canciones</span>
+  </div>
 
+  <div id="favoritesGrid" class="track-grid">
+    <p class="muted-text">Todavía no tienes canciones favoritas.</p>
+  </div>
+    </section>
     <section class="playlist-section">
       <div class="section-head compact"><div><p class="eyebrow">TU ESPACIO PERSONAL</p><h2>Mis playlists</h2></div><button class="outline-btn" id="newPlaylist">＋ Crear playlist</button></div>
       <div id="playlistGrid" class="playlist-grid"><p class="muted-text">Todavía no tienes playlists. Crea una para guardar tus favoritas.</p></div>
@@ -187,6 +199,11 @@
   <a href="#library" class="nav-item">
     <span>♫</span>
     <small>Explorar</small>
+  </a>
+
+  <a href="#favoritesSection" class="nav-item">
+    <span>♥</span>
+    <small>Favoritos</small>
   </a>
 
   <a href="#playlistGrid" class="nav-item">
