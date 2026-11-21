@@ -810,3 +810,13 @@ main{
     padding-bottom:90px;
   }
 }
+/* Ajuste de reproductor y navegación móvil */
+@media(max-width:600px){
+  .player{
+    bottom:76px;
+  }
+
+  body{
+    padding-bottom:165px;
+  }
+}
