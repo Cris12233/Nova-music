@@ -110,3 +110,27 @@
   min-width:46px;
  }
 }
+@media(max-width:480px){
+ .player-controls{
+  width:100%;
+  box-sizing:border-box;
+  padding:0 14px;
+  gap:3px;
+  justify-content:center;
+ }
+
+ .player-controls button{
+  flex:0 1 32px;
+  width:32px;
+  min-width:0;
+  height:32px;
+  font-size:13px;
+ }
+
+ .player-controls .play-btn{
+  flex:0 0 44px;
+  width:44px;
+  min-width:44px;
+  height:44px;
+ }
+}
