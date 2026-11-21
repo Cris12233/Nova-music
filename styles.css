@@ -820,3 +820,124 @@ main{
     padding-bottom:165px;
   }
 }
+/* NOVA MUSIC - Reproductor expandido */
+.full-player{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:linear-gradient(160deg,#21133d,#090911 75%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:28px;
+  color:white;
+}
+
+.full-player.hidden{
+  display:none;
+}
+
+.full-player-close{
+  position:absolute;
+  top:25px;
+  left:25px;
+  border:0;
+  background:#ffffff18;
+  color:white;
+  border-radius:50%;
+  width:45px;
+  height:45px;
+  font-size:25px;
+}
+
+.full-player .eyebrow{
+  color:#bba4ff;
+  letter-spacing:3px;
+  font-size:11px;
+  text-align:center;
+}
+
+.full-cover{
+  width:min(75vw,330px);
+  aspect-ratio:1;
+  border-radius:24px;
+  background:linear-gradient(135deg,#7650d8,#24134c);
+  display:grid;
+  place-items:center;
+  font-size:90px;
+  background-size:cover;
+  background-position:center;
+  box-shadow:0 20px 70px #0009;
+  margin:25px 0;
+}
+
+.full-song-info{
+  width:min(100%,420px);
+  text-align:center;
+}
+
+.full-song-info h2{
+  font-size:25px;
+  margin:8px 0;
+  overflow-wrap:anywhere;
+}
+
+.full-song-info p{
+  color:#aaa;
+  margin:0;
+}
+
+.full-progress{
+  width:min(100%,420px);
+  margin-top:30px;
+}
+
+.full-progress input{
+  width:100%;
+  accent-color:#a47aff;
+}
+
+.full-progress div{
+  display:flex;
+  justify-content:space-between;
+  color:#aaa;
+  font-size:12px;
+}
+
+.full-controls{
+  display:flex;
+  align-items:center;
+  gap:35px;
+  margin:25px 0;
+}
+
+.full-controls button{
+  border:0;
+  background:#ffffff18;
+  color:white;
+  width:52px;
+  height:52px;
+  border-radius:50%;
+  font-size:23px;
+}
+
+#fullPlay{
+  width:68px;
+  height:68px;
+  background:#9565ff;
+  font-size:28px;
+}
+
+.full-extra{
+  display:flex;
+  gap:15px;
+}
+
+.full-extra button{
+  border:1px solid #ffffff25;
+  background:#ffffff10;
+  color:white;
+  padding:12px 18px;
+  border-radius:25px;
+}
