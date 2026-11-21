@@ -941,3 +941,111 @@ main{
   padding:12px 18px;
   border-radius:25px;
 }
+/* NOVA MUSIC — NEON PREMIUM */
+:root {
+  --nova-bg: #080914;
+  --nova-surface: #111426;
+  --nova-purple: #9565ff;
+  --nova-blue: #36a5ff;
+  --nova-glow: rgba(137, 83, 255, .18);
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 15% 5%, rgba(91, 53, 190, .17), transparent 38%),
+    radial-gradient(ellipse at 90% 35%, rgba(31, 113, 220, .12), transparent 40%),
+    var(--nova-bg);
+  color: #f5f4ff;
+}
+
+.ambient-a {
+  opacity: .45;
+  filter: blur(90px);
+}
+
+.ambient-b {
+  opacity: .35;
+  filter: blur(110px);
+}
+
+::selection {
+  background: rgba(149, 101, 255, .4);
+  color: white;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+/* TARJETAS NEON PREMIUM */
+.track-card {
+  background: linear-gradient(145deg, #171a30, #0d1020) !important;
+  border: 1px solid rgba(155, 117, 255, .16) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .25);
+  transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
+}
+
+.track-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(155, 117, 255, .55) !important;
+  box-shadow: 0 12px 35px rgba(112, 72, 255, .16);
+}
+
+.cover {
+  border-radius: 14px !important;
+  box-shadow: 0 5px 22px rgba(0, 0, 0, .3);
+}
+
+.track-info {
+  color: #f5f2ff;
+}
+
+.card-play,
+.play-btn {
+  background: linear-gradient(135deg, #a16aff, #527cff) !important;
+  color: white !important;
+  box-shadow: 0 0 18px rgba(137, 91, 255, .3);
+}
+/* BARRA SUPERIOR — NEON PREMIUM */
+.topbar {
+  background: rgba(8, 9, 20, .82) !important;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border-bottom: 1px solid rgba(151, 105, 255, .18);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .22);
+}
+
+.topbar .brand,
+.topbar h1 {
+  letter-spacing: 2px;
+  text-shadow: 0 0 18px rgba(153, 105, 255, .28);
+}
+
+.topbar .live-dot {
+  box-shadow: 0 0 10px #55ffad, 0 0 20px rgba(85, 255, 173, .45);
+                     }
+/* BOTONES — NEON PREMIUM */
+button {
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+
+button:hover {
+  border-color: rgba(160, 113, 255, .55);
+  box-shadow: 0 0 16px rgba(145, 92, 255, .2);
+}
+
+button:active {
+  transform: scale(.96);
+}
+
+.play-btn {
+  box-shadow:
+    0 0 12px rgba(151, 94, 255, .45),
+    0 0 28px rgba(80, 130, 255, .2) !important;
+}
+
+.play-btn:hover {
+  box-shadow:
+    0 0 18px rgba(151, 94, 255, .65),
+    0 0 35px rgba(80, 130, 255, .35) !important;
+}
