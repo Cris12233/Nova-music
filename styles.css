@@ -59,3 +59,32 @@
 .queue-panel.hidden{
   display:none;
 }
+/* Ajuste de controles del reproductor NOVA */
+.player-controls{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  flex-wrap:nowrap;
+}
+
+.player-controls button{
+  flex:0 0 42px;
+  width:42px;
+  height:42px;
+  min-width:42px;
+  padding:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+}
+
+.player-controls .play-btn{
+  flex:0 0 54px;
+  width:54px;
+  height:54px;
+  min-width:54px;
+  border-radius:50%;
+  aspect-ratio:1/1;
+}
