@@ -18,6 +18,11 @@ create table if not exists public.artist_admins (
 alter table public.songs enable row level security;
 alter table public.artist_admins enable row level security;
 
+-- Cada administrador puede consultar su propia autorización.
+create policy "Admins can read own admin record" on public.artist_admins
+for select to authenticated
+using (auth.uid() = user_id);
+
 -- Cualquier visitante puede ver las canciones publicadas.
 create policy "Public can read songs" on public.songs
 for select using (true);
