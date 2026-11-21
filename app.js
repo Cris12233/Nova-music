@@ -114,13 +114,23 @@ function renderQueue(){
  toast("Añadida a la cola: "+song.title);
 }
 function toggleFavorite(id){
-  const exists=favoriteTracks.includes(id);
+  console.log("ID seleccionado:",id);
+  console.log("Favoritos antes:",favoriteTracks);
+
+  const exists=favoriteTracks.includes(String(id));
 
   if(exists){
-    favoriteTracks=favoriteTracks.filter(x=>x!==id);
+    favoriteTracks=favoriteTracks.filter(x=>x!==String(id));
   }else{
-    favoriteTracks.push(id);
+    favoriteTracks.push(String(id));
   }
+
+  localStorage.setItem("nova_favorites",JSON.stringify(favoriteTracks));
+
+  console.log("Favoritos guardados:",favoriteTracks);
+
+  renderTracks();
+}
 
   localStorage.setItem("nova_favorites",JSON.stringify(favoriteTracks));
   renderTracks();
