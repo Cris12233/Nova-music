@@ -630,9 +630,9 @@ const novaNavItems = document.querySelectorAll(".nova-bottom-nav .nav-item");
 const novaSections = [
   {selector:".nova-hero", index:0},
   {selector:"#library", index:1},
-  {selector:".playlist-section", index:2}
+  {selector:"#favoritesSection", index:2},
+  {selector:".playlist-section:not(#favoritesSection)", index:3}
 ];
-
 function novaSetActive(index){
   novaNavItems.forEach((item,i)=>{
     item.classList.toggle("active",i===index);
