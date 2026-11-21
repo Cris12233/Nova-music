@@ -113,6 +113,18 @@ function renderQueue(){
  renderQueue()
  toast("Añadida a la cola: "+song.title);
 }
+function toggleFavorite(id){
+  const exists=favoriteTracks.includes(id);
+
+  if(exists){
+    favoriteTracks=favoriteTracks.filter(x=>x!==id);
+  }else{
+    favoriteTracks.push(id);
+  }
+
+  localStorage.setItem("nova_favorites",JSON.stringify(favoriteTracks));
+  renderTracks();
+}
 function renderTracks(){
  const q=$("search").value.toLowerCase();
  const shown=tracks.filter(t=>(t.title+" "+(t.artist||"")+" "+(t.album||"")).toLowerCase().includes(q));
@@ -122,13 +134,16 @@ function renderTracks(){
   const subtitle=[t.artist||"Artista independiente",t.album].filter(Boolean).join(" · ");
   
 
-return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${t.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${idx}">▶</button></div><div class="track-info"><b>${escapeHtml(t.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-play="${idx}">▶ Escuchar</button><a href="https://nova-mega-server.onrender.com/download?id=${encodeURIComponent(t.id)}">↓ Descargar</a><button data-add="${idx}">＋ Playlist</button><button data-queue="${idx}">＋ Cola</button></div></div></article>`;
+return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${t.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${idx}">▶</button></div><div class="track-info"><b>${escapeHtml(t.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(t.id)}">${favoriteTracks.includes(t.id)?"❤️":"🤍"} Favorito</button><button data-play="${idx}">▶ Escuchar</button><a href="https://nova-mega-server.onrender.com/download?id=${encodeURIComponent(t.id)}">↓ Descargar</a><button data-add="${idx}">＋ Playlist</button><button data-queue="${idx}">＋ Cola</button></div></div></article>`;
 
   
  }).join(""):`<div class="empty-state"><div class="empty-icon">♫</div><h3>${tracks.length?"No encontramos esa canción":"Tu escenario está listo"}</h3><p>${tracks.length?"Prueba con otro nombre, artista o álbum.":"Las canciones que publiques aparecerán aquí."}</p></div>`;
  document.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>playTrack(Number(b.dataset.play)));
  document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addTrackToPlaylist(Number(b.dataset.add)));
  document.querySelectorAll("[data-queue]").forEach(b=>b.onclick=()=>addToQueue(Number(b.dataset.queue)));
+ document.querySelectorAll("[data-favorite]").forEach(b=>{
+  b.onclick=()=>toggleFavorite(b.dataset.favorite);
+});
 }
 function escapeHtml(s=""){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function escapeAttr(s=""){return escapeHtml(s)}
