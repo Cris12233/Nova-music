@@ -721,3 +721,35 @@ a:hover{
     margin-top:32px;
   }
 }
+/* NOVA MUSIC - Ambiente visual */
+body{
+  background-color:#080910;
+  background-image:
+    radial-gradient(ellipse at 10% 5%,rgba(124,58,237,.12),transparent 35%),
+    radial-gradient(ellipse at 90% 45%,rgba(59,130,246,.07),transparent 38%);
+  background-attachment:fixed;
+}
+
+main{
+  position:relative;
+}
+
+.eyebrow{
+  text-shadow:0 0 15px rgba(167,139,250,.25);
+}
+
+.empty-state{
+  border:1px dashed rgba(167,139,250,.2);
+  border-radius:20px;
+  background:rgba(255,255,255,.02);
+}
+
+.empty-icon{
+  filter:drop-shadow(0 0 12px rgba(167,139,250,.4));
+}
+
+@media(max-width:600px){
+  body{
+    background-attachment:scroll;
+  }
+}
