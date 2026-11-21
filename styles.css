@@ -1049,3 +1049,831 @@ button:active {
     0 0 18px rgba(151, 94, 255, .65),
     0 0 35px rgba(80, 130, 255, .35) !important;
 }
+/* REPRODUCTOR INFERIOR — NEON */
+.now-playing {
+  background: linear-gradient(110deg, rgba(25, 20, 48, .95), rgba(12, 19, 39, .95));
+  border: 1px solid rgba(151, 105, 255, .2);
+  border-radius: 15px;
+}
+
+.mini-cover {
+  border: 1px solid rgba(164, 115, 255, .5);
+  box-shadow: 0 0 18px rgba(145, 92, 255, .25);
+}
+
+.now-meta b {
+  color: #fff;
+  text-shadow: 0 0 12px rgba(155, 115, 255, .25);
+}
+
+.now-meta span {
+  color: #aaa8c7;
+}
+
+.player-controls button {
+  transition: .2s ease;
+}
+
+.player-controls button:hover {
+  color: #b99aff;
+  text-shadow: 0 0 12px #9565ff;
+}
+
+.timeline input,
+#seek {
+  accent-color: #a16aff;
+}
+/* NAVEGACIÓN INFERIOR — NEON */
+.nova-bottom-nav {
+  background: rgba(9, 10, 23, .92);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border-top: 1px solid rgba(151, 105, 255, .2);
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, .25);
+}
+
+.nova-bottom-nav .nav-item {
+  transition: color .25s ease, transform .25s ease;
+}
+
+.nova-bottom-nav .nav-item:hover {
+  color: #b99aff;
+  transform: translateY(-3px);
+  text-shadow: 0 0 12px rgba(161, 106, 255, .65);
+}
+
+.nova-bottom-nav .nav-item.active {
+  color: #b99aff;
+  text-shadow: 0 0 14px rgba(161, 106, 255, .55);
+}
+/* REPRODUCTOR COMPLETO — NEON PREMIUM */
+.full-player {
+  background:
+    radial-gradient(ellipse at 50% 25%, rgba(112, 65, 220, .2), transparent 55%),
+    linear-gradient(160deg, #111329, #080914 75%);
+}
+
+.full-cover {
+  border: 1px solid rgba(167, 119, 255, .35);
+  box-shadow:
+    0 0 25px rgba(145, 92, 255, .2),
+    0 20px 55px rgba(0, 0, 0, .4);
+  border-radius: 22px;
+}
+
+.full-controls button {
+  transition: .25s ease;
+}
+
+.full-controls button:hover {
+  color: #b99aff;
+  text-shadow: 0 0 15px #9565ff;
+  transform: scale(1.08);
+}
+
+.full-extra {
+  color: #aaa8c7;
+}
+/* IDENTIDAD VISUAL NOVA MUSIC */
+h1, h2, h3 {
+  color: #f5f1ff;
+  text-shadow: 0 0 16px rgba(143, 91, 255, .16);
+}
+
+.section-head h2,
+.section-head h3 {
+  letter-spacing: .5px;
+}
+
+.section-head p {
+  color: #9693b4;
+}
+
+a {
+  transition: color .2s ease;
+}
+
+a:hover {
+  color: #b99aff;
+}
+
+input, select, textarea {
+  color: #f5f1ff;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: rgba(161, 106, 255, .65);
+  box-shadow: 0 0 0 3px rgba(145, 92, 255, .12);
+}
+/* PLAYLISTS — NEON PREMIUM */
+.playlist-section {
+  position: relative;
+}
+
+.playlist-section .section-head {
+  border-bottom: 1px solid rgba(151, 105, 255, .15);
+  padding-bottom: 12px;
+}
+
+.playlist-section button {
+  border-radius: 12px;
+}
+
+.playlist-section input {
+  background: rgba(20, 21, 43, .8);
+  border: 1px solid rgba(151, 105, 255, .22);
+  border-radius: 12px;
+  padding: 11px 14px;
+}
+
+.playlist-section input:focus {
+  border-color: #9565ff;
+  box-shadow: 0 0 16px rgba(149, 101, 255, .18);
+}
+/* AMBIENTE FUTURISTA NOVA */
+body {
+  background-attachment: fixed;
+}
+
+.track-grid {
+  perspective: 1000px;
+}
+
+.track-card,
+.playlist-section,
+.full-cover {
+  isolation: isolate;
+}
+
+.track-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    135deg,
+    rgba(160, 110, 255, .06),
+    transparent 45%,
+    rgba(50, 145, 255, .04)
+  );
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+
+.track-card:hover::after {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .track-card {
+    animation: novaAppear .45s ease both;
+  }
+
+  @keyframes novaAppear {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+/* PORTADAS — ACABADO PREMIUM */
+.cover img,
+.full-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  transition: transform .45s ease, filter .45s ease;
+}
+
+.track-card:hover .cover img {
+  transform: scale(1.06);
+  filter: brightness(1.12) saturate(1.15);
+}
+
+.cover {
+  overflow: hidden;
+  background: linear-gradient(135deg, #251747, #101b38);
+}
+
+.cover-symbol {
+  color: #c2a3ff;
+  text-shadow:
+    0 0 12px rgba(161, 106, 255, .7),
+    0 0 28px rgba(75, 145, 255, .35);
+}
+/* MODALES — GLASS NEON */
+.modal,
+.modal-content {
+  background: linear-gradient(145deg, #19182e, #0c1020) !important;
+  border: 1px solid rgba(155, 105, 255, .28);
+  border-radius: 20px;
+  box-shadow:
+    0 20px 70px rgba(0, 0, 0, .55),
+    0 0 30px rgba(125, 75, 255, .12);
+}
+
+.modal h2,
+.modal h3 {
+  color: #eee7ff;
+}
+
+.modal input,
+.modal textarea,
+.modal select {
+  background: rgba(8, 10, 24, .8);
+  border: 1px solid rgba(155, 105, 255, .25);
+  border-radius: 12px;
+  color: white;
+}
+
+.modal button {
+  border-radius: 12px;
+}
+/* SCROLLBAR — NEON NOVA */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #080914;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #9565ff, #397cff);
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b99aff;
+}
+
+* {
+  scrollbar-color: #8055dc #080914;
+  scrollbar-width: thin;
+}
+/* ETIQUETAS Y ESTADOS — NOVA */
+.badge,
+.tag,
+.status {
+  border: 1px solid rgba(151, 105, 255, .25);
+  border-radius: 30px;
+  background: rgba(125, 80, 255, .12);
+  color: #c6adff;
+  padding: 5px 11px;
+}
+
+.empty-state {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(117, 73, 220, .12),
+    transparent 70%
+  );
+  border: 1px dashed rgba(151, 105, 255, .25);
+  border-radius: 20px;
+  padding: 30px 18px;
+}
+
+.empty-icon {
+  color: #b99aff;
+  text-shadow: 0 0 22px rgba(149, 101, 255, .55);
+}
+/* CONTROLES DE AUDIO — NEON */
+input[type="range"] {
+  accent-color: #a16aff;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  box-shadow: 0 0 12px rgba(161, 106, 255, .65);
+}
+
+#volume {
+  accent-color: #9565ff;
+}
+
+#seek {
+  accent-color: #36a5ff;
+}
+
+.player-controls button,
+.full-controls button {
+  border-radius: 50%;
+}
+
+.player-controls .play-btn {
+  border: 1px solid rgba(205, 180, 255, .35);
+  box-shadow: 0 0 22px rgba(149, 101, 255, .4);
+}
+/* ARTISTAS — NOVA PREMIUM */
+.artist-card {
+  background: linear-gradient(145deg, #171a30, #0d1020);
+  border: 1px solid rgba(151, 105, 255, .2);
+  border-radius: 20px;
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.artist-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(125, 75, 255, .18);
+  border-color: rgba(161, 106, 255, .5);
+}
+
+.artist-card img,
+.artist-avatar {
+  border: 1px solid rgba(161, 106, 255, .3);
+  box-shadow: 0 0 18px rgba(149, 101, 255, .2);
+}
+
+.artist-card h3 {
+  color: #f4efff;
+  text-shadow: 0 0 12px rgba(149, 101, 255, .2);
+}
+/* GLASSMORPHISM — NOVA MUSIC */
+.playlist-section,
+.artist-card,
+.track-card {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.section-head {
+  position: relative;
+}
+
+.section-head::after {
+  content: "";
+  display: block;
+  width: 55px;
+  height: 2px;
+  margin-top: 9px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #a16aff, #36a5ff);
+  box-shadow: 0 0 12px rgba(149, 101, 255, .5);
+}
+/* NAVEGACIÓN — DETALLES PREMIUM */
+.nav-item {
+  position: relative;
+  transition: all .25s ease;
+}
+
+.nav-item.active::after {
+  content: "";
+  position: absolute;
+  bottom: -5px;
+  left: 25%;
+  width: 50%;
+  height: 2px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #9565ff, #36a5ff);
+  box-shadow: 0 0 12px #9565ff;
+}
+
+.nav-item.active {
+  color: #c5aaff;
+  filter: drop-shadow(0 0 7px rgba(149, 101, 255, .4));
+}
+/* CANCIÓN SELECCIONADA — NOVA NEON */
+.track-card:active {
+  transform: scale(.985);
+}
+
+.track-card.selected {
+  border-color: rgba(161, 106, 255, .7) !important;
+  box-shadow:
+    0 0 0 1px rgba(161, 106, 255, .15),
+    0 0 25px rgba(145, 92, 255, .2);
+}
+
+.now-playing {
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.mini-cover {
+  transition: box-shadow .3s ease, transform .3s ease;
+}
+
+.now-playing:hover .mini-cover {
+  transform: scale(1.04);
+  box-shadow: 0 0 24px rgba(149, 101, 255, .4);
+}
+/* NOTIFICACIONES — NEON PREMIUM */
+.toast {
+  background: linear-gradient(135deg, #21183b, #10182c) !important;
+  color: #f5efff !important;
+  border: 1px solid rgba(161, 106, 255, .4);
+  border-radius: 14px;
+  box-shadow:
+    0 10px 35px rgba(0, 0, 0, .4),
+    0 0 20px rgba(149, 101, 255, .15);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+/* NOVA MUSIC — EXPERIENCIA MÓVIL */
+@media (max-width: 600px) {
+  .track-grid {
+    gap: 12px;
+  }
+
+  .track-card {
+    border-radius: 15px !important;
+  }
+
+  .cover {
+    border-radius: 12px !important;
+  }
+
+  .section-head {
+    gap: 10px;
+  }
+
+  .now-playing {
+    border-radius: 12px;
+  }
+
+  .mini-cover {
+    border-radius: 10px;
+  }
+
+  .nova-bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+/* MICROANIMACIONES — NOVA */
+@media (prefers-reduced-motion: no-preference) {
+  .track-card,
+  .artist-card,
+  .mini-cover,
+  .card-play {
+    transition:
+      transform .3s ease,
+      box-shadow .3s ease,
+      border-color .3s ease,
+      filter .3s ease;
+  }
+
+  .card-play:hover {
+    transform: scale(1.1);
+    filter: brightness(1.15);
+  }
+
+  .artist-card:hover {
+    transform: translateY(-5px) scale(1.01);
+  }
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #a16aff;
+  outline-offset: 4px;
+}
+/* FONDO CINEMATOGRÁFICO — NOVA */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(128, 75, 255, .08), transparent 35%),
+    radial-gradient(circle at 85% 75%, rgba(40, 120, 255, .07), transparent 38%);
+}
+
+.ambient-a,
+.ambient-b {
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+/* BÚSQUEDA — NOVA PREMIUM */
+input[type="search"],
+input[type="text"] {
+  background: linear-gradient(135deg, #15172c, #0e1222);
+  border: 1px solid rgba(149, 101, 255, .22);
+  border-radius: 13px;
+  transition: border-color .25s ease, box-shadow .25s ease;
+}
+
+input[type="search"]:focus,
+input[type="text"]:focus {
+  border-color: #9565ff;
+  box-shadow: 0 0 18px rgba(149, 101, 255, .2);
+}
+
+input::placeholder {
+  color: #85829f;
+}
+/* BORDES LUMINOSOS — NOVA */
+.playlist-section {
+  border: 1px solid rgba(149, 101, 255, .12);
+  border-radius: 20px;
+  padding: 16px;
+  background: linear-gradient(
+    145deg,
+    rgba(24, 21, 47, .45),
+    rgba(10, 15, 31, .35)
+  );
+}
+
+.playlist-section:hover {
+  border-color: rgba(149, 101, 255, .3);
+}
+
+.track-card:hover,
+.artist-card:hover {
+  border-color: rgba(161, 106, 255, .55);
+}
+/* BOTONES SECUNDARIOS — NOVA */
+.track-actions button,
+.section-head button {
+  background: linear-gradient(135deg, rgba(35, 28, 65, .9), rgba(17, 25, 48, .9));
+  border: 1px solid rgba(149, 101, 255, .25);
+  border-radius: 12px;
+  color: #d8caff;
+  transition: all .25s ease;
+}
+
+.track-actions button:hover,
+.section-head button:hover {
+  background: linear-gradient(135deg, #34205e, #172c55);
+  border-color: #a16aff;
+  color: white;
+  box-shadow: 0 0 16px rgba(149, 101, 255, .25);
+}
+/* SEPARADORES — NOVA PREMIUM */
+hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(149, 101, 255, .55),
+    rgba(54, 165, 255, .35),
+    transparent
+  );
+  margin: 22px 0;
+}
+
+.section-head {
+  border-bottom-color: rgba(149, 101, 255, .16);
+}
+
+.section-head h2::selection,
+.section-head h3::selection {
+  background: rgba(149, 101, 255, .35);
+}
+/* TÍTULOS — IDENTIDAD NEON NOVA */
+.topbar .brand {
+  color: #ffffff;
+  text-shadow:
+    0 0 8px rgba(161, 106, 255, .5),
+    0 0 22px rgba(91, 117, 255, .25);
+}
+
+.topbar .brand span {
+  color: #a984ff;
+  text-shadow:
+    0 0 10px rgba(161, 106, 255, .65),
+    0 0 25px rgba(91, 117, 255, .3);
+}
+
+h1, h2 {
+  text-wrap: balance;
+}
+/* BOTONES PRINCIPALES — NOVA ULTRA */
+button.primary,
+button.primary-btn,
+.upload-btn {
+  background: linear-gradient(120deg, #8754ed, #426fff);
+  color: #fff;
+  border: 1px solid rgba(200, 175, 255, .35);
+  border-radius: 13px;
+  box-shadow:
+    0 5px 18px rgba(112, 72, 255, .25),
+    inset 0 1px 0 rgba(255, 255, 255, .15);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+
+button.primary:hover,
+button.primary-btn:hover,
+.upload-btn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 25px rgba(130, 85, 255, .4),
+    0 0 18px rgba(54, 165, 255, .2);
+}
+/* ILUMINACIÓN AMBIENTAL — NOVA ULTRA */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at 0% 50%,
+      rgba(132, 75, 255, .07),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 100% 20%,
+      rgba(48, 126, 255, .07),
+      transparent 35%
+    );
+}
+
+.track-card,
+.artist-card {
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, .2),
+    inset 0 1px 0 rgba(255, 255, 255, .025);
+}
+/* PLAYER — STUDIO PREMIUM */
+.player-center {
+  background: linear-gradient(
+    135deg,
+    rgba(23, 20, 48, .65),
+    rgba(12, 18, 36, .65)
+  );
+  border: 1px solid rgba(149, 101, 255, .16);
+  border-radius: 18px;
+  padding: 10px;
+}
+
+.player-controls {
+  gap: 18px;
+}
+
+.player-controls button {
+  color: #c5b3f5;
+}
+
+.player-controls .play-btn {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #a16aff, #397cff);
+  color: white;
+  box-shadow: 0 0 24px rgba(149, 101, 255, .4);
+}
+
+.timeline {
+  filter: drop-shadow(0 0 5px rgba(149, 101, 255, .2));
+}
+/* LISTAS DE CANCIONES — NOVA ULTRA */
+.track-list,
+.queue-list {
+  background: rgba(13, 16, 34, .55);
+  border: 1px solid rgba(149, 101, 255, .15);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.track-list > *,
+.queue-list > * {
+  transition: background .2s ease;
+}
+
+.track-list > *:hover,
+.queue-list > *:hover {
+  background: rgba(125, 83, 255, .1);
+}
+
+.track-list img,
+.queue-list img {
+  border-radius: 10px;
+  box-shadow: 0 0 12px rgba(149, 101, 255, .15);
+}
+/* RESPONSIVE ULTRA — NOVA MUSIC */
+@media (max-width: 600px) {
+  .track-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .track-card {
+    min-width: 0;
+    padding: 10px;
+  }
+
+  .track-info {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .now-meta {
+    min-width: 0;
+  }
+
+  .now-meta b,
+  .now-meta span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .full-cover {
+    max-width: 82vw;
+    margin-inline: auto;
+  }
+
+  .player-center {
+    padding: 8px;
+  }
+}
+/* TRANSICIONES CINEMATOGRÁFICAS — NOVA */
+@media (prefers-reduced-motion: no-preference) {
+  .track-card,
+  .artist-card,
+  .playlist-section,
+  .modal-content {
+    transition:
+      transform .35s cubic-bezier(.2, .8, .2, 1),
+      border-color .35s ease,
+      box-shadow .35s ease,
+      background .35s ease;
+  }
+
+  .track-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .card-play {
+    transition:
+      transform .3s ease,
+      box-shadow .3s ease,
+      filter .3s ease;
+  }
+}
+
+button:focus-visible {
+  outline: 2px solid #a984ff;
+  outline-offset: 3px;
+}
+/* =================================
+   NOVA MUSIC — NEON ULTRA FINAL
+   ================================= */
+
+:root {
+  --nova-purple: #a16aff;
+  --nova-blue: #36a5ff;
+  --nova-dark: #080914;
+  --nova-glow: rgba(149, 101, 255, .25);
+}
+
+body {
+  color: #f5f1ff;
+  background-color: var(--nova-dark);
+}
+
+::selection {
+  background: rgba(161, 106, 255, .45);
+  color: white;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.track-card,
+.artist-card,
+.playlist-section {
+  border-color: rgba(161, 106, 255, .2);
+}
+
+.track-card:hover,
+.artist-card:hover {
+  border-color: var(--nova-purple);
+  box-shadow: 0 10px 35px var(--nova-glow);
+}
+
+.play-btn,
+.card-play {
+  background: linear-gradient(
+    135deg,
+    var(--nova-purple),
+    var(--nova-blue)
+  );
+  box-shadow: 0 0 22px var(--nova-glow);
+}
+
+.topbar,
+.nova-bottom-nav {
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
