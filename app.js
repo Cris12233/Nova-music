@@ -341,3 +341,86 @@ function addTrackToPlaylist(i){
 }
 renderPlaylists();loadTracks();
 if(supabase)supabase.auth.onAuthStateChange((_event,session)=>showSession(session));
+// NOVA MUSIC: contador previo de canciones
+let bulkPrecheckRequest=0;
+
+async function updateBulkPrecheck(){
+ const box=$("bulkPrecheck");
+ if(!box)return;
+
+ const request=++bulkPrecheckRequest;
+ const batch=selectedBatch();
+
+ if(!batch.length){
+  box.textContent="Selecciona canciones para comprobar cuáles son nuevas.";
+  return;
+ }
+
+ if(!supabase){
+  box.textContent="No se pudo conectar con Supabase.";
+  return;
+ }
+
+ const valid=batch.filter(x=>
+  x.file.type.startsWith("audio/")||
+  /\.(mp3|wav|m4a|aac|ogg|flac)$/i.test(x.file.name)
+ );
+
+ const rejected=batch.length-valid.length;
+ const tooLarge=valid.filter(x=>x.file.size>100*1024*1024);
+ const eligible=valid.filter(x=>x.file.size<=100*1024*1024);
+
+ if(!eligible.length){
+  box.textContent=`Canciones nuevas: 0 | Duplicadas: 0 | Archivos no compatibles: ${rejected} | Mayores de 100 MB: ${tooLarge.length}`;
+  return;
+ }
+
+ box.textContent="Comprobando canciones existentes…";
+
+ const artist=$("bulkArtist").value.trim()||"Artista independiente";
+
+ const normalizeNOVA=value=>String(value||"")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g,"")
+  .trim()
+  .toLowerCase()
+  .replace(/\s+/g," ");
+
+ const {data,error}=await supabase
+  .from("songs")
+  .select("title,artist");
+
+ if(request!==bulkPrecheckRequest)return;
+
+ if(error){
+  box.textContent="No se pudieron comprobar los duplicados: "+error.message;
+  return;
+ }
+
+ const seen=new Set(
+  (data||[]).map(song=>
+   normalizeNOVA(song.title)+"|"+normalizeNOVA(song.artist)
+  )
+ );
+
+ let duplicates=0;
+ let newSongs=0;
+
+ for(const item of eligible){
+  const key=normalizeNOVA(titleFromFile(item.file.name))+"|"+normalizeNOVA(artist);
+
+  if(seen.has(key)){
+   duplicates++;
+  }else{
+   newSongs++;
+   seen.add(key);
+  }
+ }
+
+ box.textContent=
+  `Canciones nuevas: ${newSongs} | Duplicadas: ${duplicates} | Archivos no compatibles: ${rejected} | Mayores de 100 MB: ${tooLarge.length}`;
+}
+
+$("bulkFiles").addEventListener("change",updateBulkPrecheck);
+$("folderFiles").addEventListener("change",updateBulkPrecheck);
+$("bulkArtist").addEventListener("change",updateBulkPrecheck);
