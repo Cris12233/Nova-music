@@ -134,3 +134,13 @@
   height:44px;
  }
 }
+.player-controls button:not(.play-btn){
+  font-size:20px;
+  font-weight:700;
+  line-height:1;
+}
+
+.player-controls #prevBtn,
+.player-controls #nextBtn{
+  font-size:23px;
+}
