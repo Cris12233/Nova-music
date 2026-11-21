@@ -114,6 +114,43 @@ function renderQueue(){
  toast("Añadida a la cola: "+song.title);
 }
 function toggleFavorite(id){
+ function renderFavorites(){
+  const favorites=tracks.filter(t=>favoriteTracks.includes(t.id));
+
+  $("favoriteCount").textContent=favorites.length+" canciones";
+
+  $("favoritesGrid").innerHTML=favorites.length
+    ?favorites.map(t=>{
+      const idx=tracks.indexOf(t);
+      const cover=t.cover_url
+        ?`background-image:url('${escapeAttr(t.cover_url)}')`
+        :"";
+
+      return `<article class="track-card">
+        <div class="cover" style="${cover}">
+          <span class="cover-symbol" ${t.cover_url?'style="display:none"':''}>♫</span>
+          <button class="card-play" data-play="${idx}">▶</button>
+        </div>
+        <div class="track-info">
+          <b>${escapeHtml(t.title)}</b>
+          <span>${escapeHtml(t.artist||"Artista independiente")}</span>
+          <div class="track-actions">
+            <button data-favorite="${escapeAttr(t.id)}">❤️ Quitar</button>
+            <button data-play="${idx}">▶ Escuchar</button>
+          </div>
+        </div>
+      </article>`;
+    }).join("")
+    :`<p class="muted-text">Todavía no tienes canciones favoritas. ❤️</p>`;
+
+  $("favoritesGrid").querySelectorAll("[data-play]").forEach(b=>{
+    b.onclick=()=>playTrack(Number(b.dataset.play));
+  });
+
+  $("favoritesGrid").querySelectorAll("[data-favorite]").forEach(b=>{
+    b.onclick=()=>toggleFavorite(b.dataset.favorite);
+  });
+ }
   const exists=favoriteTracks.includes(id);
 
   if(exists){
@@ -144,6 +181,7 @@ return `<article class="track-card"><div class="cover" style="${cover}"><span cl
  document.querySelectorAll("[data-favorite]").forEach(b=>{
   b.onclick=()=>toggleFavorite(b.dataset.favorite);
 });
+renderFavorites();
 }
 function escapeHtml(s=""){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function escapeAttr(s=""){return escapeHtml(s)}
