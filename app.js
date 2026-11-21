@@ -29,7 +29,7 @@ function renderTracks(){
 }
 function escapeHtml(s=""){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function escapeAttr(s=""){return escapeHtml(s)}
-function playTrack(i){if(!tracks[i])return;currentIndex=i;const t=tracks[i];audio.src=t.audio_url;audio.play().catch(()=>toast("No se pudo reproducir el audio."));$("nowTitle").textContent=t.title;$("nowArtist").textContent=t.artist||"Artista independiente";$("nowCover").textContent="♫";$("nowCover").style.backgroundImage=t.cover_url?`url("${t.cover_url}")`:"";$("playBtn").textContent="Ⅱ"}
+function playTrack(i){if(!tracks[i])return;currentIndex=i;const t=tracks[i];audio.src=`https://nova-mega-server.onrender.com/stream?id=${encodeURIComponent(t.id)}`;audio.play().catch(()=>toast("No se pudo reproducir el audio."));$("nowTitle").textContent=t.title;$("nowArtist").textContent=t.artist||"Artista independiente";$("nowCover").textContent="♫";$("nowCover").style.backgroundImage=t.cover_url?`url("${t.cover_url}")`:"";$("playBtn").textContent="Ⅱ"}
 $("playBtn").onclick=()=>{if(!audio.src){if(tracks.length)playTrack(0);return}if(audio.paused){audio.play();$("playBtn").textContent="Ⅱ"}else{audio.pause();$("playBtn").textContent="▶"}};
 $("prevBtn").onclick=()=>{if(tracks.length)playTrack((currentIndex-1+tracks.length)%tracks.length)};
 $("nextBtn").onclick=()=>{if(tracks.length)playTrack((currentIndex+1)%tracks.length)};
