@@ -6,7 +6,24 @@ const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : nu
 const $ = id => document.getElementById(id);
 const audio = $("audio");
 audio.addEventListener("ended",()=>{
- if(!playQueue.length)return;
+ if(!playQueue.length){
+  if(!tracks.length)return;
+
+  let nextTrackIndex;
+
+  if(shuffleQueue){
+   nextTrackIndex=Math.floor(Math.random()*tracks.length);
+
+   if(tracks.length>1 && nextTrackIndex===currentIndex){
+    nextTrackIndex=(nextTrackIndex+1)%tracks.length;
+   }
+  }else{
+   nextTrackIndex=(currentIndex+1)%tracks.length;
+  }
+
+  playTrack(nextTrackIndex);
+  return;
+ }
 
  let nextIndex=getNextQueueIndex();
 
