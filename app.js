@@ -66,10 +66,14 @@ function addToQueue(index){
  }
 function renderQueue(){
  const list=$("queueList");
+ const panel=$("queuePanel");
+
  $("queueCount").textContent=playQueue.length+" canciones";
 
+ panel.classList.toggle("hidden",playQueue.length===0);
+
  if(!playQueue.length){
-  list.innerHTML='<p class="queue-empty">Tu cola está vacía.</p>';
+  list.innerHTML="";
   return;
  }
 
