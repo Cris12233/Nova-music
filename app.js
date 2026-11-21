@@ -192,16 +192,49 @@ $("bulkUploadBtn").onclick=async()=>{
   try{
    const pathParts=item.relativePath.split("/").filter(Boolean);
    const folderAlbum=item.fromFolder?(pathParts.length>1?pathParts[0]:""):"";
-   const album=albumTyped||folderAlbum||null;
-   const audioPath=`${user.id}/${Date.now()}-${i}-${safeName(file.name)}`;
-   await uploadWithRetry("music",audioPath,file,file.type||"audio/mpeg");
-   const audioUrl=supabase.storage.from("music").getPublicUrl(audioPath).data.publicUrl;
+   const album=albumTyped||folderAlbum||null
+   const megaForm = new FormData();
+megaForm.append("file", file);
+const sessionResult = await supabase.auth.getSession();
+const accessToken = sessionResult.data.session?.access_token;
+
+if (!accessToken) {
+  throw new Error("Tu sesión ha vencido. Inicia sesión nuevamente.");
+}
+
+const megaResponse = await fetch(
+  "https://nova-mega-server.onrender.com/upload",
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    },
+    body: megaForm
+  }
+);
+
+const megaResult = await megaResponse.json();
+
+if (!megaResponse.ok || !megaResult.success) {
+  throw new Error(megaResult.error || "No se pudo subir a MEGA");
+}
+
+const audioUrl = megaResult.mega_url;
+const audioPath = null;
    updateQueue(i,"Guardando información…","working");
    const {error}=await supabase.from("songs").insert({
-    title:titleFromFile(file.name),artist,album,audio_url:audioUrl,audio_path:audioPath,
-    cover_url:coverUrl,cover_path:coverPath,uploaded_by:user.id
-   });
-   if(error){await supabase.storage.from("music").remove([audioPath]);throw error;}
+ title:titleFromFile(file.name),
+ artist,
+ album,
+ audio_url:audioUrl,
+ audio_path:audioPath,
+ cover_url:coverUrl,
+ cover_path:coverPath,
+ uploaded_by:user.id,
+ is_published:true
+});
+
+if(error) throw error;
    success++;updateQueue(i,"Publicada ✓","done");
   }catch(error){failed++;updateQueue(i,error.message||"Error al subir","failed");}
   done++;setProgress(done,valid.length);
