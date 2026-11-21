@@ -615,8 +615,11 @@ novaNavItems.forEach((item,index)=>{
 function updateFullPlayer(){
   $("fullTitle").textContent=$("nowTitle").textContent;
   $("fullArtist").textContent=$("nowArtist").textContent;
-  $("fullCover").style.backgroundImage=$("nowCover").style.backgroundImage;
-  $("fullCover").textContent=$("nowCover").textContent;
+
+  const cover=$("nowCover").style.backgroundImage;
+
+  $("fullCover").style.backgroundImage=cover;
+  $("fullCover").textContent=cover?"":"♫";
 }
 
 $("nowTitle").parentElement.onclick=()=>{
