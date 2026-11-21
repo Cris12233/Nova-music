@@ -403,3 +403,135 @@ a:hover{
     -webkit-tap-highlight-color:transparent;
   }
 }
+/* NOVA MUSIC - Portada principal */
+.nova-hero{
+  position:relative;
+  min-height:340px;
+  padding:45px 38px;
+  margin:25px 0 45px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:26px;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:
+    radial-gradient(circle at 80% 45%,rgba(139,92,246,.35),transparent 35%),
+    linear-gradient(120deg,#171326,#101522 65%,#17102b);
+}
+
+.hero-content{
+  position:relative;
+  z-index:2;
+  max-width:570px;
+}
+
+.hero-content h1{
+  font-size:clamp(35px,5vw,58px);
+  line-height:1.05;
+  letter-spacing:-2px;
+  margin:15px 0;
+}
+
+.hero-content h1 span{
+  color:#a78bfa;
+}
+
+.hero-description{
+  color:#aaa9bd;
+  line-height:1.7;
+  max-width:430px;
+}
+
+.hero-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-top:25px;
+}
+
+.hero-actions a{
+  padding:13px 20px;
+  border-radius:12px;
+  text-decoration:none;
+  font-weight:700;
+  font-size:13px;
+}
+
+.hero-primary{
+  color:white;
+  background:linear-gradient(135deg,#a78bfa,#6d28d9);
+  box-shadow:0 6px 22px rgba(139,92,246,.3);
+}
+
+.hero-secondary{
+  color:white;
+  border:1px solid rgba(255,255,255,.17);
+  background:rgba(255,255,255,.05);
+}
+
+.hero-decoration{
+  position:relative;
+  width:260px;
+  height:260px;
+  flex-shrink:0;
+  display:grid;
+  place-items:center;
+}
+
+.hero-disc{
+  width:190px;
+  height:190px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  font-size:65px;
+  color:#d8c7ff;
+  background:
+    radial-gradient(circle,#211934 0 12%,#8b5cf6 13% 15%,#171323 16% 40%,#34234e 41% 43%,#100e18 44%);
+  box-shadow:0 0 55px rgba(139,92,246,.35);
+  animation:novaSpin 18s linear infinite;
+  z-index:2;
+}
+
+.hero-orbit{
+  position:absolute;
+  width:245px;
+  height:245px;
+  border:1px solid rgba(167,139,250,.35);
+  border-radius:50%;
+}
+
+.hero-tag{
+  position:absolute;
+  bottom:15px;
+  right:22px;
+  color:rgba(255,255,255,.35);
+  font-size:9px;
+  letter-spacing:2px;
+}
+
+@keyframes novaSpin{
+  to{transform:rotate(360deg)}
+}
+
+@media(max-width:600px){
+  .nova-hero{
+    min-height:0;
+    padding:30px 22px 35px;
+    margin:18px 0 32px;
+  }
+
+  .hero-content h1{
+    font-size:38px;
+    letter-spacing:-1.5px;
+  }
+
+  .hero-decoration{
+    display:none;
+  }
+
+  .hero-tag{
+    display:none;
+  }
+}
