@@ -42,6 +42,7 @@ audio.addEventListener("ended",()=>{
  if(trackIndex!==-1)playTrack(trackIndex);
 });
 let tracks = [], currentIndex = -1, playlists = JSON.parse(localStorage.getItem("nova_playlists") || "[]");
+let favoriteTracks = JSON.parse(localStorage.getItem("nova_favorites") || "[]");
 let playQueue = [];
 let queueIndex = -1;
 let repeatQueue = false;
