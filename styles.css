@@ -560,3 +560,58 @@ a:hover{
   0%,100%{box-shadow:0 3px 12px rgba(139,92,246,.25)}
   50%{box-shadow:0 3px 22px rgba(139,92,246,.65)}
 }
+/* NOVA MUSIC - Tarjetas de música PRO */
+.track-grid{
+  gap:18px;
+}
+
+.track-card{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(167,139,250,.13);
+  border-radius:20px;
+  background:linear-gradient(
+    145deg,
+    rgba(255,255,255,.075),
+    rgba(255,255,255,.025)
+  );
+  box-shadow:0 8px 25px rgba(0,0,0,.15);
+  transition:transform .25s ease,border-color .25s ease,
+             box-shadow .25s ease;
+}
+
+.track-card:hover{
+  transform:translateY(-5px);
+  border-color:rgba(167,139,250,.5);
+  box-shadow:0 15px 35px rgba(109,40,217,.2);
+}
+
+.track-card .cover{
+  overflow:hidden;
+  border-radius:14px;
+}
+
+.track-info{
+  padding:12px;
+}
+
+.track-info b{
+  font-size:14px;
+  line-height:1.4;
+}
+
+.track-info>span{
+  color:#aaa8bd;
+  font-size:12px;
+}
+
+.track-actions button,
+.track-actions a{
+  border-radius:10px;
+  transition:background .2s ease,transform .2s ease;
+}
+
+.track-actions button:hover,
+.track-actions a:hover{
+  transform:translateY(-2px);
+}
