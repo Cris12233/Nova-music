@@ -615,3 +615,109 @@ a:hover{
 .track-actions a:hover{
   transform:translateY(-2px);
 }
+/* NOVA MUSIC - Encabezados y buscador */
+.section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  flex-wrap:wrap;
+  margin-bottom:22px;
+}
+
+.section-head h2{
+  font-size:clamp(21px,3vw,28px);
+  letter-spacing:-.6px;
+}
+
+.section-head .eyebrow{
+  color:#a78bfa;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:2px;
+}
+
+.count{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:27px;
+  height:27px;
+  margin-left:5px;
+  padding:0 7px;
+  border-radius:20px;
+  background:rgba(139,92,246,.18);
+  color:#c4b5fd;
+  font-size:12px;
+}
+
+.search-wrap{
+  border:1px solid rgba(167,139,250,.2);
+  border-radius:14px;
+  background:rgba(255,255,255,.045);
+  transition:border-color .2s ease,box-shadow .2s ease;
+}
+
+.search-wrap:focus-within{
+  border-color:#8b5cf6;
+  box-shadow:0 0 18px rgba(139,92,246,.15);
+}
+
+.search-wrap input{
+  color:white;
+  background:transparent;
+}
+
+@media(max-width:600px){
+  .section-head{
+    align-items:flex-start;
+    gap:13px;
+  }
+
+  .search-wrap{
+    width:100%;
+  }
+}
+/* NOVA MUSIC - Playlists premium */
+.playlist-section{
+  margin-top:45px;
+}
+
+.playlist-grid{
+  gap:16px;
+}
+
+.playlist-grid>div,
+.playlist-grid>.playlist-card{
+  border:1px solid rgba(167,139,250,.14);
+  border-radius:18px;
+  background:linear-gradient(
+    145deg,
+    rgba(139,92,246,.10),
+    rgba(255,255,255,.025)
+  );
+  transition:transform .25s ease,border-color .25s ease;
+}
+
+.playlist-grid>div:hover,
+.playlist-grid>.playlist-card:hover{
+  transform:translateY(-4px);
+  border-color:rgba(167,139,250,.5);
+}
+
+.playlist-section .outline-btn{
+  border:1px solid rgba(167,139,250,.4);
+  border-radius:12px;
+  transition:background .2s ease,box-shadow .2s ease;
+}
+
+.playlist-section .outline-btn:hover{
+  background:rgba(139,92,246,.15);
+  box-shadow:0 0 18px rgba(139,92,246,.15);
+}
+
+@media(max-width:600px){
+  .playlist-section{
+    margin-top:32px;
+  }
+}
