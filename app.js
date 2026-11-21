@@ -156,25 +156,79 @@ async function uploadWithRetry(bucket,path,file,contentType){
  }
  throw lastError;
 }
+
 $("bulkUploadBtn").onclick=async()=>{
  if(!supabase)return setBulkSummary("No se pudo conectar con Supabase.");
+
  const batch=selectedBatch();
  if(!batch.length)return setBulkSummary("Selecciona canciones o una carpeta primero.");
+
  const valid=batch.filter(x=>x.file.type.startsWith("audio/")||/\.(mp3|wav|m4a|aac|ogg|flac)$/i.test(x.file.name));
  const rejected=batch.length-valid.length;
+
  if(!valid.length)return setBulkSummary("No encontramos archivos de audio compatibles.");
+
  const tooLarge=valid.filter(x=>x.file.size>100*1024*1024);
  if(tooLarge.length)return setBulkSummary(`Hay ${tooLarge.length} archivo(s) que superan 100 MB. Quita esos archivos y vuelve a intentarlo.`);
+
  const userResult=await supabase.auth.getUser();
  const user=userResult.data.user;
  if(userResult.error||!user)return setBulkSummary("Tu sesión venció. Cierra sesión y vuelve a entrar.");
+
  const artist=$("bulkArtist").value.trim()||"Artista independiente";
  const albumTyped=$("bulkAlbum").value.trim();
  const cover=$("bulkCover").files[0]||null;
- $("bulkUploadBtn").disabled=true;$("bulkUploadBtn").textContent="Subiendo canciones…";
- drawQueue(valid);setProgress(0,valid.length);
- setBulkSummary(`Preparando ${valid.length} canción(es). No cierres esta ventana.`);
+
+ // Comprobar canciones duplicadas
+ const normalize=value=>String(value||"")
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g,"")
+  .trim()
+  .toLowerCase()
+  .replace(/\s+/g," ");
+
+ const {data:existingSongs,error:checkError}=await supabase
+  .from("songs")
+  .select("title,artist");
+
+ if(checkError){
+  return setBulkSummary("No se pudieron comprobar los duplicados: "+checkError.message);
+ }
+
+ const seen=new Set(
+  (existingSongs||[]).map(song=>
+   normalize(song.title)+"|"+normalize(song.artist)
+  )
+ );
+
+ const toUpload=[];
+ let duplicates=0;
+
+ for(const item of valid){
+  const key=normalize(titleFromFile(item.file.name))+"|"+normalize(artist);
+
+  if(seen.has(key)){
+   duplicates++;
+   continue;
+  }
+
+  seen.add(key);
+  toUpload.push(item);
+ }
+
+ if(!toUpload.length){
+  return setBulkSummary(`No se subió nada: las ${duplicates} canción(es) seleccionadas ya existen.`);
+ }
+
+ $("bulkUploadBtn").disabled=true;
+ $("bulkUploadBtn").textContent="Subiendo canciones…";
+
+ drawQueue(toUpload);
+ setProgress(0,toUpload.length);
+ setBulkSummary(`Preparando ${toUpload.length} canción(es). ${duplicates} duplicada(s) omitidas.`);
+
  let coverUrl=null,coverPath=null;
+
  try{
   if(cover){
    coverPath=`${user.id}/${Date.now()}-${safeName(cover.name)}`;
@@ -182,71 +236,96 @@ $("bulkUploadBtn").onclick=async()=>{
    coverUrl=supabase.storage.from("covers").getPublicUrl(coverPath).data.publicUrl;
   }
  }catch(error){
-  $("bulkUploadBtn").disabled=false;$("bulkUploadBtn").textContent="Subir selección completa ↑";
+  $("bulkUploadBtn").disabled=false;
+  $("bulkUploadBtn").textContent="Subir selección completa ↑";
   return setBulkSummary("No se pudo subir la portada: "+(error.message||"error desconocido"));
  }
+
  let done=0,success=0,failed=0;
- for(let i=0;i<valid.length;i++){
-  const item=valid[i],file=item.file;
+
+ for(let i=0;i<toUpload.length;i++){
+  const item=toUpload[i],file=item.file;
   updateQueue(i,"Subiendo audio…","working");
+
   try{
    const pathParts=item.relativePath.split("/").filter(Boolean);
    const folderAlbum=item.fromFolder?(pathParts.length>1?pathParts[0]:""):"";
-   const album=albumTyped||folderAlbum||null
-   const megaForm = new FormData();
-megaForm.append("file", file);
-const sessionResult = await supabase.auth.getSession();
-const accessToken = sessionResult.data.session?.access_token;
+   const album=albumTyped||folderAlbum||null;
 
-if (!accessToken) {
-  throw new Error("Tu sesión ha vencido. Inicia sesión nuevamente.");
-}
+   const megaForm=new FormData();
+   megaForm.append("file",file);
 
-const megaResponse = await fetch(
-  "https://nova-mega-server.onrender.com/upload",
-  {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`
-    },
-    body: megaForm
-  }
-);
+   const sessionResult=await supabase.auth.getSession();
+   const accessToken=sessionResult.data.session?.access_token;
 
-const megaResult = await megaResponse.json();
+   if(!accessToken){
+    throw new Error("Tu sesión ha vencido. Inicia sesión nuevamente.");
+   }
 
-if (!megaResponse.ok || !megaResult.success) {
-  throw new Error(megaResult.error || "No se pudo subir a MEGA");
-}
+   const megaResponse=await fetch(
+    "https://nova-mega-server.onrender.com/upload",
+    {
+     method:"POST",
+     headers:{
+      Authorization:`Bearer ${accessToken}`
+     },
+     body:megaForm
+    }
+   );
 
-const audioUrl = megaResult.mega_url;
-const audioPath = null;
+   const megaResult=await megaResponse.json();
+
+   if(!megaResponse.ok||!megaResult.success){
+    throw new Error(megaResult.error||"No se pudo subir a MEGA");
+   }
+
+   const audioUrl=megaResult.mega_url;
+   const audioPath=null;
+
    updateQueue(i,"Guardando información…","working");
-   const {error}=await supabase.from("songs").insert({
- title:titleFromFile(file.name),
- artist,
- album,
- audio_url:audioUrl,
- audio_path:audioPath,
- cover_url:coverUrl,
- cover_path:coverPath,
- uploaded_by:user.id,
- is_published:true
-});
 
-if(error) throw error;
-   success++;updateQueue(i,"Publicada ✓","done");
-  }catch(error){failed++;updateQueue(i,error.message||"Error al subir","failed");}
-  done++;setProgress(done,valid.length);
+   const {error}=await supabase.from("songs").insert({
+    title:titleFromFile(file.name),
+    artist,
+    album,
+    audio_url:audioUrl,
+    audio_path:audioPath,
+    cover_url:coverUrl,
+    cover_path:coverPath,
+    uploaded_by:user.id,
+    is_published:true
+   });
+
+   if(error)throw error;
+
+   success++;
+   updateQueue(i,"Publicada ✓","done");
+
+  }catch(error){
+   failed++;
+   updateQueue(i,error.message||"Error al subir","failed");
+  }
+
+  done++;
+  setProgress(done,toUpload.length);
  }
- $("bulkUploadBtn").disabled=false;$("bulkUploadBtn").textContent="Subir selección completa ↑";
+
+ $("bulkUploadBtn").disabled=false;
+ $("bulkUploadBtn").textContent="Subir selección completa ↑";
+
  if($("bulkFiles").files.length)$("bulkFiles").value="";
  if($("folderFiles").files.length)$("folderFiles").value="";
  $("bulkCover").value="";
+
  await loadTracks();
- setBulkSummary(`Proceso terminado: ${success} publicada(s), ${failed} con error${rejected?`, ${rejected} archivo(s) ignorados`:""}.`);
+
+ setBulkSummary(
+  `Proceso terminado: ${success} publicada(s), ${failed} con error, ${duplicates} duplicada(s) omitidas${rejected?`, ${rejected} archivo(s) ignorados`:""}.`
+ );
+
  if(success)toast(`${success} canción(es) publicadas en NOVA MUSIC`);
 };
+
 
 function savePlaylists(){localStorage.setItem("nova_playlists",JSON.stringify(playlists));renderPlaylists()}
 function renderPlaylists(){
