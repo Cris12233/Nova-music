@@ -610,3 +610,53 @@ novaSections.forEach(section=>{
 novaNavItems.forEach((item,index)=>{
   item.addEventListener("click",()=>novaSetActive(index));
 });
+/* NOVA MUSIC - Sincronización del reproductor expandido */
+
+function updateFullPlayer(){
+  $("fullTitle").textContent=$("nowTitle").textContent;
+  $("fullArtist").textContent=$("nowArtist").textContent;
+  $("fullCover").style.backgroundImage=$("nowCover").style.backgroundImage;
+  $("fullCover").textContent=$("nowCover").textContent;
+}
+
+$("nowTitle").parentElement.onclick=()=>{
+  $("fullPlayer").classList.remove("hidden");
+  updateFullPlayer();
+};
+
+$("closeFullPlayer").onclick=()=>{
+  $("fullPlayer").classList.add("hidden");
+};
+
+$("fullPlay").onclick=()=>{
+  $("playBtn").click();
+};
+
+$("fullPrev").onclick=()=>{
+  $("prevBtn").click();
+};
+
+$("fullNext").onclick=()=>{
+  $("nextBtn").click();
+};
+
+$("fullShuffle").onclick=()=>{
+  $("shuffleBtn").click();
+};
+
+$("fullRepeat").onclick=()=>{
+  $("repeatBtn").click();
+};
+
+$("fullSeek").oninput=()=>{
+  if(audio.duration){
+    audio.currentTime=Number($("fullSeek").value)/100*audio.duration;
+  }
+};
+
+audio.addEventListener("timeupdate",()=>{
+  $("fullSeek").value=audio.duration?audio.currentTime/audio.duration*100:0;
+  $("fullCurrentTime").textContent=time(audio.currentTime);
+  $("fullDuration").textContent=time(audio.duration);
+  $("fullPlay").textContent=audio.paused?"▶":"Ⅱ";
+});
