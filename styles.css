@@ -144,3 +144,262 @@
 .player-controls #nextBtn{
   font-size:23px;
 }
+/* NOVA MUSIC - Diseño premium */
+:root{
+  --nova-accent:#8b5cf6;
+  --nova-glow:rgba(139,92,246,.22);
+}
+
+body{
+  background:
+    radial-gradient(ellipse at 15% 0%,rgba(139,92,246,.13),transparent 40%),
+    radial-gradient(ellipse at 90% 35%,rgba(35,120,190,.09),transparent 38%),
+    #080910;
+}
+
+button{
+  transition:transform .2s ease,background .2s ease,
+             box-shadow .2s ease,opacity .2s ease;
+}
+
+button:active{
+  transform:scale(.95);
+}
+
+.track-card{
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;
+  background:linear-gradient(145deg,
+    rgba(255,255,255,.075),
+    rgba(255,255,255,.025));
+  transition:transform .25s ease,border-color .25s ease,
+             box-shadow .25s ease;
+}
+
+.track-card:hover{
+  transform:translateY(-4px);
+  border-color:rgba(139,92,246,.4);
+  box-shadow:0 12px 35px var(--nova-glow);
+}
+
+.track-card img{
+  border-radius:12px;
+}
+
+.player{
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-top:1px solid rgba(255,255,255,.1);
+}
+
+.play-btn{
+  box-shadow:0 0 22px var(--nova-glow);
+}
+
+@keyframes novaAppear{
+  from{
+    opacity:0;
+    transform:translateY(10px);
+  }
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+.track-card{
+  animation:novaAppear .4s ease both;
+}
+/* NOVA MUSIC - Portadas mejoradas */
+.track-card{
+  overflow:hidden;
+  position:relative;
+}
+
+.track-card img{
+  width:100%;
+  aspect-ratio:1/1;
+  object-fit:cover;
+  transition:transform .4s ease,filter .4s ease;
+}
+
+.track-card:hover img{
+  transform:scale(1.06);
+  filter:brightness(1.12);
+}
+
+.track-card button{
+  border-radius:12px;
+}
+
+.track-card button:hover{
+  box-shadow:0 0 16px rgba(139,92,246,.25);
+}
+
+.track-card b{
+  letter-spacing:.2px;
+}
+
+.track-card:hover{
+  box-shadow:
+    0 12px 35px rgba(139,92,246,.16),
+    inset 0 0 20px rgba(255,255,255,.025);
+}
+/* NOVA MUSIC - Reproductor premium */
+.player{
+  background:rgba(12,13,25,.88);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  box-shadow:0 -8px 35px rgba(0,0,0,.3);
+}
+
+.now-playing{
+  gap:14px;
+}
+
+.mini-cover{
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 4px 18px rgba(139,92,246,.2);
+  transition:transform .3s ease;
+}
+
+.mini-cover:hover{
+  transform:scale(1.06) rotate(-2deg);
+}
+
+.player-controls .play-btn{
+  background:linear-gradient(135deg,#a78bfa,#6d28d9);
+  box-shadow:0 0 25px rgba(139,92,246,.35);
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+
+.player-controls .play-btn:hover{
+  transform:scale(1.08);
+  box-shadow:0 0 32px rgba(139,92,246,.55);
+}
+
+#seek{
+  accent-color:#a78bfa;
+  cursor:pointer;
+}
+
+#volume{
+  accent-color:#a78bfa;
+  cursor:pointer;
+}
+/* NOVA MUSIC - Botones y búsqueda */
+button{
+  cursor:pointer;
+}
+
+input:not([type="range"]):not([type="file"]),
+select{
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;
+  transition:border-color .25s ease,box-shadow .25s ease;
+}
+
+input:focus,
+select:focus{
+  outline:none;
+  border-color:#8b5cf6;
+  box-shadow:0 0 0 3px rgba(139,92,246,.13);
+}
+
+button:hover{
+  filter:brightness(1.12);
+}
+
+button:focus-visible{
+  outline:2px solid #a78bfa;
+  outline-offset:3px;
+}
+
+::selection{
+  background:rgba(139,92,246,.4);
+  color:white;
+}
+/* NOVA MUSIC - Transiciones fluidas */
+html{
+  scroll-behavior:smooth;
+}
+
+section,
+main,
+.library,
+.content{
+  animation:novaAppear .45s ease both;
+}
+
+a{
+  transition:color .2s ease,opacity .2s ease;
+}
+
+a:hover{
+  opacity:.8;
+}
+
+.card,
+.panel,
+.modal{
+  transition:background .25s ease,
+             border-color .25s ease,
+             box-shadow .25s ease;
+}
+
+.modal{
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,
+  *::before,
+  *::after{
+    scroll-behavior:auto!important;
+    animation-duration:.01ms!important;
+    transition-duration:.01ms!important;
+  }
+}
+/* NOVA MUSIC - Ajuste premium para móviles */
+@media(max-width:600px){
+
+  body{
+    overflow-x:hidden;
+  }
+
+  .track-card{
+    border-radius:15px;
+  }
+
+  .track-card img{
+    border-radius:11px;
+  }
+
+  .now-playing{
+    min-width:0;
+  }
+
+  .now-meta{
+    min-width:0;
+    overflow:hidden;
+  }
+
+  .now-meta b,
+  .now-meta span{
+    display:block;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .queue-panel{
+    border-radius:14px;
+    max-height:160px;
+  }
+
+  button{
+    -webkit-tap-highlight-color:transparent;
+  }
+}
