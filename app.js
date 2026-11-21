@@ -45,23 +45,85 @@ async function loadTracks(){
  if(error){$("trackGrid").innerHTML=`<div class="empty-state"><h3>No se pudo cargar la biblioteca</h3><p>${escapeHtml(error.message)}</p></div>`;return}
  tracks=data||[];renderTracks();
 }
+
 async function refreshSession(){
- if(!supabase){$("adminMessage").textContent="Primero configura Supabase. Revisa README.txt.";return}
- const {data}=await supabase.auth.getSession();showSession(data.session);
+ if(!supabase){
+  $("adminMessage").textContent="Primero configura Supabase. Revisa README.txt.";
+  return;
+ }
+
+ const {data}=await supabase.auth.getSession();
+ showSession(data.session);
+
+ if(data.session){
+  await checkMegaStatus(data.session);
+ }
 }
+
 function showSession(session){
  $("authForm").classList.toggle("hidden",!!session);
  $("uploadPanel").classList.toggle("hidden",!session);
- if(session){$("signedEmail").textContent=session.user.email;}
+
+ if(session){
+  $("signedEmail").textContent=session.user.email;
+ }
 }
+
+async function checkMegaStatus(session){
+ $("adminMessage").textContent="Comprobando conexión con MEGA...";
+
+ try{
+  const response=await fetch(
+   "https://nova-mega-server.onrender.com/mega-status",
+   {
+    headers:{
+     Authorization:`Bearer ${session.access_token}`
+    }
+   }
+  );
+
+  const result=await response.json();
+
+  if(!response.ok){
+   throw new Error(result.error || "No se pudo conectar");
+  }
+
+  $("adminMessage").textContent="¡MEGA conectado correctamente!";
+ }catch(error){
+  $("adminMessage").textContent=
+   "No se pudo comprobar MEGA: "+error.message;
+ }
+}
+
 $("loginBtn").onclick=async()=>{
- if(!supabase){$("adminMessage").textContent="Configura Supabase primero (README.txt).";return}
+ if(!supabase){
+  $("adminMessage").textContent="Configura Supabase primero (README.txt).";
+  return;
+ }
+
  $("adminMessage").textContent="Verificando...";
- const {data,error}=await supabase.auth.signInWithPassword({email:$("email").value,password:$("password").value});
- $("adminMessage").textContent=error?error.message:"Sesión iniciada.";
- if(data?.session)showSession(data.session);
+
+ const {data,error}=await supabase.auth.signInWithPassword({
+  email:$("email").value,
+  password:$("password").value
+ });
+
+ if(error){
+  $("adminMessage").textContent=error.message;
+  return;
+ }
+
+ if(data?.session){
+  showSession(data.session);
+  await checkMegaStatus(data.session);
+ }
 };
-$("logoutBtn").onclick=async()=>{await supabase.auth.signOut();showSession(null);toast("Sesión cerrada")};
+
+$("logoutBtn").onclick=async()=>{
+ await supabase.auth.signOut();
+ showSession(null);
+ toast("Sesión cerrada");
+};
 
 const audioTypes = new Set(["audio/mpeg","audio/mp3","audio/wav","audio/x-wav","audio/mp4","audio/aac","audio/ogg","audio/flac"]);
 function safeName(name){return name.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9._-]/g,"_")}
