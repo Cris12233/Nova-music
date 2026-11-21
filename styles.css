@@ -88,3 +88,25 @@
   border-radius:50%;
   aspect-ratio:1/1;
 }
+@media(max-width:480px){
+ .player-controls{
+  gap:5px;
+  width:100%;
+  justify-content:center;
+ }
+
+ .player-controls button{
+  flex:0 0 34px;
+  width:34px;
+  height:34px;
+  min-width:34px;
+  font-size:14px;
+ }
+
+ .player-controls .play-btn{
+  flex:0 0 46px;
+  width:46px;
+  height:46px;
+  min-width:46px;
+ }
+}
