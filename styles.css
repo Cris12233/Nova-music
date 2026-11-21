@@ -753,3 +753,60 @@ main{
     background-attachment:scroll;
   }
 }
+/* NOVA MUSIC - Navegación inferior móvil */
+.nova-bottom-nav{
+  display:none;
+}
+
+@media(max-width:600px){
+  .nova-bottom-nav{
+    position:fixed;
+    bottom:12px;
+    left:12px;
+    right:12px;
+    z-index:999;
+    display:flex;
+    align-items:center;
+    justify-content:space-around;
+    padding:10px 8px;
+    border:1px solid rgba(167,139,250,.2);
+    border-radius:20px;
+    background:rgba(13,12,25,.94);
+    backdrop-filter:blur(22px);
+    -webkit-backdrop-filter:blur(22px);
+    box-shadow:0 8px 35px rgba(0,0,0,.45);
+  }
+
+  .nova-bottom-nav .nav-item{
+    display:flex;
+    flex:1;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:4px;
+    padding:5px;
+    color:#aaa8bd;
+    text-decoration:none;
+    border-radius:13px;
+    transition:color .2s ease,background .2s ease;
+  }
+
+  .nova-bottom-nav .nav-item span{
+    font-size:23px;
+    line-height:1;
+  }
+
+  .nova-bottom-nav .nav-item small{
+    font-size:10px;
+    font-weight:700;
+  }
+
+  .nova-bottom-nav .nav-item.active{
+    color:#c4b5fd;
+    background:rgba(139,92,246,.15);
+  }
+
+  body{
+    padding-bottom:90px;
+  }
+}
