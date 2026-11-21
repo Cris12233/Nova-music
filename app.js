@@ -8,22 +8,38 @@ const audio = $("audio");
 audio.addEventListener("ended",()=>{
  if(!playQueue.length)return;
 
- const nextIndex=getNextQueueIndex();
-const song=playQueue[nextIndex];
-if(!song)return;
-  const trackIndex=tracks.findIndex(t=>t.id===song.id);
-  if(trackIndex!==-1)playTrack(trackIndex);
- }else if(repeatQueue){
-  const song=playQueue[0];
-  const trackIndex=tracks.findIndex(t=>t.id===song.id);
-  if(trackIndex!==-1)playTrack(trackIndex);
+ let nextIndex=getNextQueueIndex();
+
+ if(nextIndex>=playQueue.length){
+  if(repeatQueue){
+   nextIndex=0;
+  }else{
+   return;
+  }
  }
+
+ const song=playQueue[nextIndex];
+ if(!song)return;
+
+ const trackIndex=tracks.findIndex(t=>t.id===song.id);
+ if(trackIndex!==-1)playTrack(trackIndex);
 });
 let tracks = [], currentIndex = -1, playlists = JSON.parse(localStorage.getItem("nova_playlists") || "[]");
 let playQueue = [];
 let queueIndex = -1;
 let repeatQueue = false;
 let shuffleQueue = false;
+$("shuffleBtn").onclick=()=>{
+ shuffleQueue=!shuffleQueue;
+ $("shuffleBtn").style.opacity=shuffleQueue?"1":"0.5";
+ toast(shuffleQueue?"Modo aleatorio activado":"Modo aleatorio desactivado");
+};
+
+$("repeatBtn").onclick=()=>{
+ repeatQueue=!repeatQueue;
+ $("repeatBtn").style.opacity=repeatQueue?"1":"0.5";
+ toast(repeatQueue?"Repetir cola activado":"Repetir cola desactivado");
+};
 function getNextQueueIndex(){
  if(!playQueue.length)return -1;
 
