@@ -570,3 +570,43 @@ async function updateBulkPrecheck(){
 $("bulkFiles").addEventListener("change",updateBulkPrecheck);
 $("folderFiles").addEventListener("change",updateBulkPrecheck);
 $("bulkArtist").addEventListener("change",updateBulkPrecheck);
+/* NOVA MUSIC - Navegación activa automática */
+const novaNavItems = document.querySelectorAll(".nova-bottom-nav .nav-item");
+
+const novaSections = [
+  {selector:".nova-hero", index:0},
+  {selector:"#library", index:1},
+  {selector:".playlist-section", index:2}
+];
+
+function novaSetActive(index){
+  novaNavItems.forEach((item,i)=>{
+    item.classList.toggle("active",i===index);
+  });
+}
+
+const novaObserver = new IntersectionObserver(entries=>{
+  const visible = entries
+    .filter(entry=>entry.isIntersecting)
+    .sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top);
+
+  if(visible.length){
+    const index = novaSections.findIndex(
+      section=>document.querySelector(section.selector)===visible[0].target
+    );
+
+    if(index!==-1) novaSetActive(novaSections[index].index);
+  }
+},{
+  rootMargin:"-15% 0px -65% 0px",
+  threshold:0
+});
+
+novaSections.forEach(section=>{
+  const element=document.querySelector(section.selector);
+  if(element) novaObserver.observe(element);
+});
+
+novaNavItems.forEach((item,index)=>{
+  item.addEventListener("click",()=>novaSetActive(index));
+});
