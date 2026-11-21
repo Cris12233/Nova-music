@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#090b12">
+  <title>NOVA MUSIC — Música inédita</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
+  <header class="topbar">
+    <a class="brand" href="#"><span class="brand-mark">N</span><span>NOVA<span class="muted">MUSIC</span></span></a>
+    <div class="top-actions">
+      <span class="live-dot"></span><span class="small-label">MÚSICA INÉDITA</span>
+      <button class="ghost-btn" id="adminOpen">Panel de artista</button>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="eyebrow-line"></span> TU MÚSICA, TU UNIVERSO</p>
+        <h1>Lo que aún no<br>ha salido, <span>suena aquí.</span></h1>
+        <p class="hero-sub">Un espacio para descubrir, escuchar y guardar música antes que nadie.</p>
+        <a class="primary-btn" href="#library">Explorar canciones <span>↘</span></a>
+      </div>
+      <div class="hero-art" aria-label="Arte abstracto musical">
+        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+        <div class="art-core"><span>▶</span></div>
+        <div class="art-note note-one">♪</div><div class="art-note note-two">♫</div>
+        <div class="art-caption">EXCLUSIVE<br><b>FREQUENCIES</b></div>
+      </div>
+    </section>
+
+    <section class="section-head" id="library">
+      <div><p class="eyebrow">LA COLECCIÓN</p><h2>Últimos lanzamientos <span class="count" id="trackCount">0</span></h2></div>
+      <div class="search-wrap"><span>⌕</span><input id="search" placeholder="Buscar una canción..." autocomplete="off"></div>
+    </section>
+
+    <section id="trackGrid" class="track-grid">
+      <div class="empty-state"><div class="empty-icon">♫</div><h3>Tu escenario está listo</h3><p>Las canciones que publiques aparecerán aquí.</p></div>
+    </section>
+
+    <section class="playlist-section">
+      <div class="section-head compact"><div><p class="eyebrow">TU ESPACIO PERSONAL</p><h2>Mis playlists</h2></div><button class="outline-btn" id="newPlaylist">＋ Crear playlist</button></div>
+      <div id="playlistGrid" class="playlist-grid"><p class="muted-text">Todavía no tienes playlists. Crea una para guardar tus favoritas.</p></div>
+    </section>
+  </main>
+
+  <footer><span class="brand mini"><span class="brand-mark">N</span>NOVA MUSIC</span><span>Un espacio independiente para la música que viene.</span></footer>
+
+  <div class="player" id="player">
+    <div class="now-playing"><div class="mini-cover" id="nowCover">♫</div><div class="now-meta"><b id="nowTitle">Selecciona una canción</b><span id="nowArtist">NOVA MUSIC</span></div></div>
+    <div class="player-center">
+      <div class="player-controls"><button id="prevBtn" title="Anterior">↶</button><button class="play-btn" id="playBtn" title="Reproducir">▶</button><button id="nextBtn" title="Siguiente">↷</button></div>
+      <div class="timeline"><span id="currentTime">0:00</span><input type="range" id="seek" min="0" max="100" value="0"><span id="duration">0:00</span></div>
+    </div>
+    <div class="player-extra"><span>♫</span><input type="range" id="volume" min="0" max="1" step=".01" value=".8"></div>
+  </div>
+  <audio id="audio"></audio>
+
+  <div class="modal-backdrop" id="adminModal">
+    <div class="modal">
+      <button class="close-btn" data-close="adminModal">×</button>
+      <p class="eyebrow">ACCESO RESTRINGIDO</p><h2>Panel de artista</h2>
+      <p class="modal-desc">Inicia sesión con tu cuenta de administrador para publicar música.</p>
+      <div id="authForm">
+        <label>Correo electrónico</label><input id="email" type="email" placeholder="tu@correo.com">
+        <label>Contraseña</label><input id="password" type="password" placeholder="Tu contraseña">
+        <button class="primary-btn full" id="loginBtn">Iniciar sesión</button>
+      </div>
+      <div id="uploadPanel" class="hidden">
+        <div class="signed-in"><span class="live-dot"></span><span id="signedEmail"></span><button class="text-btn" id="logoutBtn">Cerrar sesión</button></div>
+        <label>Nombre de la canción</label><input id="songTitle" placeholder="Ej. Noche sin final">
+        <label>Artista</label><input id="songArtist" placeholder="Nombre artístico">
+        <label>Audio (MP3, WAV, M4A)</label><input id="songFile" type="file" accept="audio/*">
+        <label>Portada (opcional)</label><input id="coverFile" type="file" accept="image/*">
+        <button class="primary-btn full" id="uploadBtn">Publicar canción <span>↑</span></button>
+        <p class="hint">Al publicar, la canción será visible y descargable para todos.</p>
+      </div>
+      <p id="adminMessage" class="message"></p>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="playlistModal">
+    <div class="modal small-modal">
+      <button class="close-btn" data-close="playlistModal">×</button>
+      <p class="eyebrow">COLECCIÓN PERSONAL</p><h2>Nueva playlist</h2>
+      <label>Nombre</label><input id="playlistName" placeholder="Mis favoritas">
+      <button class="primary-btn full" id="createPlaylist">Crear playlist</button>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
