@@ -6,3 +6,56 @@
 /* Subida masiva de NOVA MUSIC */
 .bulk-intro{display:flex;flex-direction:column;gap:5px;padding:13px 14px;margin:14px 0 17px;border:1px solid #b9ff6633;border-radius:13px;background:#b9ff660b}.bulk-intro b{font:600 15px "Space Grotesk";color:var(--accent)}.bulk-intro span{font-size:11px;line-height:1.5;color:var(--muted)}.bulk-progress-wrap{margin-top:19px;padding:13px;border:1px solid var(--line);border-radius:12px;background:#0c1019}.bulk-progress-head{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}.bulk-progress-head b{font-size:11px}.bulk-progress-head span{font-size:10px;color:var(--muted)}.bulk-progress-track{height:7px;border-radius:20px;background:#252c3a;overflow:hidden}.bulk-progress-fill{height:100%;width:0;background:var(--accent);border-radius:20px;transition:width .25s}.bulk-queue{display:flex;flex-direction:column;gap:6px;max-height:190px;overflow:auto;margin-top:10px}.queue-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:9px;background:#ffffff07;font-size:10px}.queue-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#d8dce6}.queue-status{flex-shrink:0;font-size:9px;color:#9299a8}.queue-status.working{color:#f5cf70}.queue-status.done{color:var(--accent)}.queue-status.failed{color:#ff8585;max-width:48%;overflow-wrap:anywhere;text-align:right}.modal:has(#uploadPanel:not(.hidden)){width:min(520px,100%);max-height:88vh;overflow-y:auto}.modal input[type=file]{padding:10px;background:#0c1019;border:1px solid var(--line);border-radius:10px}.modal #bulkUploadBtn:disabled{opacity:.6;cursor:wait}
 @media(max-width:600px){.modal:has(#uploadPanel:not(.hidden)){max-height:86vh;padding:22px 17px}.bulk-progress-head span{line-height:1.4}}
+/* NOVA MUSIC - Cola de reproducción */
+.queue-panel{
+  margin:12px 0;
+  padding:14px;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:16px;
+  background:rgba(255,255,255,.035);
+  max-height:180px;
+  overflow-y:auto;
+}
+
+.queue-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+  font-size:13px;
+}
+
+#queueCount{
+  opacity:.55;
+  font-size:11px;
+}
+
+.queue-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:9px 4px;
+  border-top:1px solid rgba(255,255,255,.07);
+  font-size:12px;
+}
+
+.queue-item span{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.queue-item button{
+  border:0;
+  background:rgba(255,255,255,.08);
+  color:inherit;
+  border-radius:8px;
+  padding:5px 10px;
+  cursor:pointer;
+}
+
+.queue-panel.hidden{
+  display:none;
+}
