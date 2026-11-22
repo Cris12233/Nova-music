@@ -1,5 +1,6 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
+import { readAudioMetadata } from "./audio-metadata.js";
 
 const configured = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("PEGA_AQUI") && SUPABASE_ANON_KEY.length > 30 && !SUPABASE_ANON_KEY.includes("PEGA_AQUI");
 const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storage: window.localStorage } }) : null;
@@ -660,6 +661,78 @@ function selectedBatch(){
  const files=folder.length?folder:individual;
  return files.map(file=>({file,relativePath:file.webkitRelativePath||file.name,fromFolder:folder.length>0}));
 }
+
+let bulkMetadataByFile = new Map();
+let bulkMetadataRequest = 0;
+let bulkMetadataFiles = [];
+
+function folderAlbumForItem(item){
+ const parts=item.relativePath.split("/").filter(Boolean);
+ return item.fromFolder&&parts.length>1?parts[0]:"";
+}
+
+function metadataForItem(item){
+ const saved=bulkMetadataByFile.get(item.file)||{};
+ return {
+  title:saved.title||titleFromFile(item.file.name),
+  artist:saved.artistEdited?saved.artist:(saved.artist||$("bulkArtist").value.trim()||"Artista independiente"),
+  album:saved.albumEdited?saved.album:($("bulkAlbum").value.trim()||saved.album||folderAlbumForItem(item)||null)
+ };
+}
+
+async function prepareBulkMetadata(){
+ const request=++bulkMetadataRequest;
+ const batch=selectedBatch();
+ const preview=$("bulkMetadataPreview");
+ const rows=$("bulkMetadataRows");
+ if(!preview||!rows)return;
+ if(!batch.length){
+  preview.classList.add("hidden");
+  rows.innerHTML="";
+  bulkMetadataByFile=new Map();
+  bulkMetadataFiles=[];
+  return;
+ }
+ if(batch.length===bulkMetadataFiles.length&&batch.every((item,index)=>item.file===bulkMetadataFiles[index]))return;
+ preview.classList.remove("hidden");
+ rows.innerHTML='<p class="muted-text">Leyendo etiquetas de las canciones…</p>';
+ const next=new Map();
+ const entries=await Promise.all(batch.map(async item=>{
+  const supported=/\.mp3$/i.test(item.file.name);
+  const tags=supported?await readAudioMetadata(item.file):{};
+  return {item,tags};
+ }));
+ if(request!==bulkMetadataRequest)return;
+ for(const {item,tags} of entries){
+  next.set(item.file,{
+   title:tags.title||titleFromFile(item.file.name),
+   artist:tags.artist||"",
+   album:tags.album||""
+  });
+ }
+ bulkMetadataByFile=next;
+ bulkMetadataFiles=batch.map(item=>item.file);
+ rows.innerHTML=batch.map((item,index)=>{
+  const meta=metadataForItem(item);
+  const hasTags=!!(meta.artist||meta.album||meta.title!==titleFromFile(item.file.name));
+  return `<article class="bulk-metadata-row" data-metadata-row="${index}">
+   <div class="bulk-metadata-file"><b>${escapeHtml(item.file.name)}</b><small>${hasTags?"Datos detectados o completados":"Sin etiquetas ID3; puedes completar los datos"}</small></div>
+   <label>Título<input type="text" data-meta-field="title" data-meta-index="${index}" value="${escapeAttr(meta.title)}"></label>
+   <label>Artista<input type="text" data-meta-field="artist" data-meta-index="${index}" value="${escapeAttr(meta.artist)}" placeholder="Artista desconocido"></label>
+   <label>Álbum<input type="text" data-meta-field="album" data-meta-index="${index}" value="${escapeAttr(meta.album||"")}" placeholder="Sin álbum"></label>
+  </article>`;
+ }).join("");
+ rows.querySelectorAll("[data-meta-field]").forEach(input=>{
+  input.addEventListener("input",()=>{
+   const item=batch[Number(input.dataset.metaIndex)];
+   if(!item)return;
+   const saved=bulkMetadataByFile.get(item.file)||{};
+   saved[input.dataset.metaField]=input.value.trim();
+   saved[input.dataset.metaField+"Edited"]=true;
+   bulkMetadataByFile.set(item.file,saved);
+  });
+ });
+}
 $("bulkFiles").onchange=()=>{if($("bulkFiles").files.length){$("folderFiles").value="";setBulkSummary(`${$("bulkFiles").files.length} archivo(s) seleccionados`)}};
 $("folderFiles").onchange=()=>{if($("folderFiles").files.length){$("bulkFiles").value="";setBulkSummary(`${$("folderFiles").files.length} archivo(s) encontrados en la carpeta`)}};
 
@@ -692,7 +765,7 @@ $("bulkUploadBtn").onclick=async()=>{
  const user=userResult.data.user;
  if(userResult.error||!user)return setBulkSummary("Tu sesión venció. Cierra sesión y vuelve a entrar.");
 
- const artist=$("bulkArtist").value.trim()||"Artista independiente";
+ await prepareBulkMetadata();
  const albumTyped=$("bulkAlbum").value.trim();
  const cover=$("bulkCover").files[0]||null;
 
@@ -722,7 +795,8 @@ $("bulkUploadBtn").onclick=async()=>{
  let duplicates=0;
 
  for(const item of valid){
-  const key=normalize(titleFromFile(item.file.name))+"|"+normalize(artist);
+  const metadata=metadataForItem(item);
+  const key=normalize(metadata.title)+"|"+normalize(metadata.artist||"Artista independiente");
 
   if(seen.has(key)){
    duplicates++;
@@ -730,7 +804,7 @@ $("bulkUploadBtn").onclick=async()=>{
   }
 
   seen.add(key);
-  toUpload.push(item);
+  toUpload.push({...item,metadata});
  }
 
  if(!toUpload.length){
@@ -765,9 +839,8 @@ $("bulkUploadBtn").onclick=async()=>{
   updateQueue(i,"Subiendo audio…","working");
 
   try{
-   const pathParts=item.relativePath.split("/").filter(Boolean);
-   const folderAlbum=item.fromFolder?(pathParts.length>1?pathParts[0]:""):"";
-   const album=albumTyped||folderAlbum||null;
+   const metadata=item.metadata||metadataForItem(item);
+   const album=metadata.album||albumTyped||null;
 
    const megaForm=new FormData();
    megaForm.append("file",file);
@@ -802,8 +875,8 @@ $("bulkUploadBtn").onclick=async()=>{
    updateQueue(i,"Guardando información…","working");
 
    const {error}=await supabase.from("songs").insert({
-    title:titleFromFile(file.name),
-    artist,
+    title:metadata.title,
+    artist:metadata.artist||"Artista independiente",
     album,
     audio_url:audioUrl,
     audio_path:audioPath,
@@ -903,8 +976,7 @@ async function updateBulkPrecheck(){
 
  box.textContent="Comprobando canciones existentes…";
 
- const artist=$("bulkArtist").value.trim()||"Artista independiente";
-
+ await prepareBulkMetadata();
  const normalizeNOVA=value=>String(value||"")
   .normalize("NFD")
   .replace(/[\u0300-\u036f]/g,"")
@@ -933,7 +1005,8 @@ async function updateBulkPrecheck(){
  let newSongs=0;
 
  for(const item of eligible){
-  const key=normalizeNOVA(titleFromFile(item.file.name))+"|"+normalizeNOVA(artist);
+  const metadata=metadataForItem(item);
+  const key=normalizeNOVA(metadata.title)+"|"+normalizeNOVA(metadata.artist||"Artista independiente");
 
   if(seen.has(key)){
    duplicates++;
@@ -949,7 +1022,8 @@ async function updateBulkPrecheck(){
 
 $("bulkFiles").addEventListener("change",updateBulkPrecheck);
 $("folderFiles").addEventListener("change",updateBulkPrecheck);
-$("bulkArtist").addEventListener("change",updateBulkPrecheck);
+$("bulkArtist").addEventListener("change",()=>{void prepareBulkMetadata();void updateBulkPrecheck();});
+$("bulkAlbum").addEventListener("change",()=>{void prepareBulkMetadata();void updateBulkPrecheck();});
 /* NOVA MUSIC - Navegación activa automática */
 const novaNavItems = document.querySelectorAll(".nova-bottom-nav .nav-item");
 
