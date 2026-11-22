@@ -908,7 +908,7 @@ $("bulkUploadBtn").onclick=async()=>{
    }
 
    const audioUrl=megaResult.mega_url;
-   const audioPath=null;
+   const audioPath=megaResult.mega_file_id?`mega:${megaResult.mega_file_id}`:null;
 
    updateQueue(i,"Guardando información…","working");
 
