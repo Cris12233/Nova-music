@@ -10,6 +10,7 @@ audio.preload = "auto";
 // Despierta el servidor gratuito en segundo plano para reducir la espera al reproducir.
 fetch(`${NOVA_API_BASE}/health`, { cache: "no-store", keepalive: true }).catch(() => {});
 audio.addEventListener("ended",()=>{
+ void saveListeningProgress();
  if(!playQueue.length){
   if(!tracks.length)return;
 
@@ -296,7 +297,7 @@ async function requestPlaybackTicket(){
 async function downloadTrack(id){
  if(!memberApproved)return;
  try{
-  void logSongEvent(id,"download");
+  await logSongEvent(id,"download");
   const ticket=await requestPlaybackTicket();
   window.location.assign(memberAudioUrl("download",id,ticket));
  }catch(error){
