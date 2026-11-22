@@ -3309,3 +3309,29 @@ body.access-locked .nova-bottom-nav{display:none!important}
   #fullPlayer .full-extra button,
   #fullPlayer .full-cover{transition:none}
 }
+
+
+/* NOVA MUSIC · Comunidad, historial y panel de actividad */
+.community-section{margin-top:34px}
+.community-history-list,.community-notifications,.community-comment-list{display:grid;gap:10px}
+.community-history-item,.community-notification,.community-comment,.community-report{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border:1px solid rgba(184,157,255,.15);border-radius:16px;background:rgba(255,255,255,.035)}
+.community-history-item>div,.community-notification>div,.community-report>div{display:grid;gap:4px;min-width:0}
+.community-history-item b,.community-notification b,.community-report b{color:#f4efff}
+.community-history-item span,.community-notification p,.community-report p{margin:0;color:#b9b1c9;font-size:13px}
+.community-history-item small,.community-notification small,.community-report small,.community-comment small{color:#8e879d;font-size:11px}
+.community-notification.unread{border-color:rgba(164,125,255,.42);background:rgba(139,92,246,.09)}
+.community-notification.read{opacity:.75}
+.community-comment{display:block}.community-comment p{margin:7px 0;color:#d7d0e3;white-space:pre-wrap;overflow-wrap:anywhere}
+.community-stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}
+.community-stat-grid>div{padding:16px;border-radius:15px;background:rgba(139,92,246,.1);border:1px solid rgba(184,157,255,.18);display:grid;gap:4px}
+.community-stat-grid b{font:700 26px 'Space Grotesk',sans-serif;color:#fff}
+.community-stat-grid span,.community-top-song span{font-size:12px;color:#aaa1bc}
+.community-top-song{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.admin-insights{margin:22px 0;padding:16px;border:1px solid rgba(184,157,255,.18);border-radius:18px;background:rgba(139,92,246,.045)}
+.admin-insights h3,.admin-insights h4{margin:18px 0 10px;color:#eee8fb}
+.community-report{align-items:flex-start;margin:9px 0}.community-report button{flex-shrink:0}
+#communityContent{display:grid;gap:10px}
+#communityContent textarea,#communityContent select{width:100%;min-height:44px;padding:12px;border-radius:12px;border:1px solid rgba(184,157,255,.2);background:#11101a;color:#fff;font:inherit}
+#communityContent label{margin-top:8px;color:#cfc5e2;font-size:12px}
+.track-actions [data-comments],.track-actions [data-report]{font-size:11px}
+@media(max-width:600px){.community-history-item,.community-notification,.community-report{align-items:flex-start;flex-direction:column}.community-history-item button,.community-notification button,.community-report button{width:100%}.community-stat-grid b{font-size:23px}.admin-insights{padding:12px}}
