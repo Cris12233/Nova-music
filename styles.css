@@ -2814,3 +2814,7 @@ body.access-locked .nova-bottom-nav{display:none!important}
  .member-request-row{align-items:flex-start;flex-direction:column}
  .member-request-actions{justify-content:flex-start}
 }
+
+
+.member-gate-actions{display:flex;align-items:center;gap:14px;margin-top:14px}
+.member-gate-actions .text-btn{margin-left:0}
