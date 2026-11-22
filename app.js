@@ -2,7 +2,7 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 
 const configured = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("PEGA_AQUI") && SUPABASE_ANON_KEY.length > 30 && !SUPABASE_ANON_KEY.includes("PEGA_AQUI");
-const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storage: window.localStorage } }) : null;
 const $ = id => document.getElementById(id);
 const audio = $("audio");
 audio.addEventListener("ended",()=>{
@@ -78,7 +78,7 @@ function time(s){if(!Number.isFinite(s))return "0:00";return `${Math.floor(s/60)
 function openModal(id){$(id).classList.add("open")}
 function closeModal(id){$(id).classList.remove("open")}
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
-$("adminOpen").onclick=()=>{openModal("adminModal");refreshSession()};
+$("adminOpen").onclick=async()=>{await refreshSession();openModal("adminModal")};
 $("newPlaylist").onclick=()=>openModal("playlistModal");
 function addToQueue(index){
  const song=tracks[index];
@@ -281,11 +281,25 @@ async function loadTracks(){
 async function refreshSession(){
  if(!supabase){
   $("adminMessage").textContent="Primero configura Supabase. Revisa README.txt.";
+  showSession(null);
   return;
  }
- const {data}=await supabase.auth.getSession();
- showSession(data.session);
- if(data.session)await checkMegaStatus(data.session);
+ $("adminMessage").textContent="Restaurando tu sesión…";
+ const {data,error}=await supabase.auth.getSession();
+ if(error){
+  showSession(null);
+  $("adminMessage").textContent="No se pudo restaurar la sesión. Inicia sesión nuevamente.";
+  return;
+ }
+ if(data.session){
+  currentSession=data.session;
+  $("authForm").classList.add("hidden");
+  $("uploadPanel").classList.add("hidden");
+  await checkMegaStatus(data.session);
+ }else{
+  showSession(null);
+  $("adminMessage").textContent="Inicia sesión con tu cuenta de administrador para publicar música.";
+ }
 }
 
 function showSession(session){
