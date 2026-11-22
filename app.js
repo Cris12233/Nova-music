@@ -346,8 +346,7 @@ $("nextBtn").onclick=()=>{
   }
 
   if(tracks.length){
-   playTrack((currentIndex+1)%tracks.length);  }};$("prevBtn").onclick=()=>{
- if(playQueue.length&&queueIndex!==-1){
+   playTrack((currentIndex+1)%tracks.length);  }};$("prevBtn").onclick=()=>{ if(playQueue.length&&queueIndex!==-1){
   const prevIndex=queueIndex>0?queueIndex-1:playQueue.length-1;
   const song=playQueue[prevIndex];
   const trackIndex=tracks.findIndex(t=>t.id===song.id);
@@ -696,8 +695,7 @@ async function prepareBulkMetadata(){
  const entries=await Promise.all(batch.map(async item=>{
   const supported=/\.mp3$/i.test(item.file.name);
   const tags=supported?await readAudioMetadata(item.file):{};
-  return {item,tags}; })); if(request!==bulkMetadataRequest)return;
- for(const {item,tags} of entries){
+  return {item,tags}; })); if(request!==bulkMetadataRequest)return; for(const {item,tags} of entries){
   next.set(item.file,{
    title:tags.title||titleFromFile(item.file.name),
    artist:tags.artist||"",
@@ -764,7 +762,8 @@ $("bulkUploadBtn").onclick=async()=>{
  const albumTyped=$("bulkAlbum").value.trim();
  const cover=$("bulkCover").files[0]||null;
 
- // Comprobar canciones duplicadas const normalize=value=>String(value||"")
+ // Comprobar canciones duplicadas
+ const normalize=value=>String(value||"")
   .normalize("NFD")
   .replace(/[\u0300-\u036f]/g,"")
   .trim()
