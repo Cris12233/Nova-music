@@ -113,5 +113,28 @@ using (
 -- Asegurar que el cliente autenticado pueda consultar el catálogo sujeto a RLS.
 grant select on public.songs to authenticated;
 
+-- El bucket de audio también queda privado por si existen archivos antiguos allí.
+update storage.buckets
+set public = false
+where id = 'music';
+
+drop policy if exists "Public can read music" on storage.objects;
+drop policy if exists "Approved members can read music" on storage.objects;
+create policy "Approved members can read music"
+on storage.objects for select to authenticated
+using (
+  bucket_id = 'music'
+  and (
+    exists (
+      select 1 from public.user_access u
+      where u.user_id = auth.uid() and u.status = 'approved'
+    )
+    or exists (
+      select 1 from public.artist_admins a
+      where a.user_id = auth.uid()
+    )
+  )
+);
+
 -- Las solicitudes no pueden cambiar su propio estado: solo el panel admin.
 -- El estado pending se crea automáticamente mediante el trigger de auth.users.
