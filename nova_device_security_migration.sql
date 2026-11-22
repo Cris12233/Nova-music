@@ -132,9 +132,16 @@ begin
   end if;
 
   if exists (
-    select 1 from public.artist_admins a where a.user_id = v_user_id
+    select 1 where public.is_nova_admin()
   ) then
     return true;
+  end if;
+
+  if not exists (
+    select 1 from public.user_access ua
+    where ua.user_id = v_user_id and ua.status = 'approved'
+  ) then
+    return false;
   end if;
 
   update public.nova_device_sessions
