@@ -50,6 +50,7 @@ audio.addEventListener("ended",()=>{
 let tracks = [], currentIndex = -1, playlists = JSON.parse(localStorage.getItem("nova_playlists") || "[]");
 let currentSession = null;
 let memberApproved = false;
+let downloadsAllowed = false;
 let novaDeviceHeartbeat = null;
 const NOVA_DEVICE_STORAGE_KEY = "nova_device_id";
 
@@ -222,7 +223,7 @@ function renderFavorites(){
     const index=tracks.indexOf(track);
     const cover=track.cover_url?`background-image:url(\'${escapeAttr(track.cover_url)}\')`:"";
     const subtitle=[track.artist||"Artista independiente",track.album].filter(Boolean).join(" · ");
-    return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${track.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${index}">▶</button></div><div class="track-info"><b>${escapeHtml(track.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(track.id)}">❤️ Quitar favorito</button><button data-play="${index}">▶ Escuchar</button><a href="#" data-download="${escapeAttr(track.id)}">↓ Descargar</a><button data-queue="${index}">＋ Cola</button>${adminVerified?`<button class="admin-delete-song" data-delete-song="${escapeAttr(track.id)}">🗑 Eliminar</button>`:""}</div></div></article>`;
+    return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${track.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${index}">▶</button></div><div class="track-info"><b>${escapeHtml(track.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(track.id)}">❤️ Quitar favorito</button><button data-play="${index}">▶ Escuchar</button>${downloadsAllowed?'<a href="#" data-download="'+escapeAttr(track.id)+'">↓ Descargar</a>':'<button type="button" class="download-locked" disabled title="El administrador todavía no ha autorizado las descargas">🔒 Descarga no autorizada</button>'}<button data-queue="${index}">＋ Cola</button>${adminVerified?`<button class="admin-delete-song" data-delete-song="${escapeAttr(track.id)}">🗑 Eliminar</button>`:""}</div></div></article>`;
   }).join("");
 
   grid.querySelectorAll("[data-play]").forEach(button=>button.onclick=()=>playTrack(Number(button.dataset.play)));
@@ -322,7 +323,7 @@ function renderTracks(){
   const subtitle=[t.artist||"Artista independiente",t.album].filter(Boolean).join(" · ");
   
 
-return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${t.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${idx}">▶</button></div><div class="track-info"><b>${escapeHtml(t.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(t.id)}">${favoriteTracks.includes(t.id)?"❤️":"🤍"} Favorito</button><button data-play="${idx}">▶ Escuchar</button><a href="#" data-download="${escapeAttr(t.id)}">↓ Descargar</a><button data-add="${idx}">＋ Playlist</button><button data-queue="${idx}">＋ Cola</button><button data-comments="${escapeAttr(t.id)}">💬 Comentarios</button><button data-report="${escapeAttr(t.id)}">⚑ Reportar</button>${adminVerified?`<button class="admin-delete-song" data-delete-song="${escapeAttr(t.id)}">🗑 Eliminar</button>`:""}</div></div></article>`;
+return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${t.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${idx}">▶</button></div><div class="track-info"><b>${escapeHtml(t.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(t.id)}">${favoriteTracks.includes(t.id)?"❤️":"🤍"} Favorito</button><button data-play="${idx}">▶ Escuchar</button>${downloadsAllowed?'<a href="#" data-download="'+escapeAttr(t.id)+'">↓ Descargar</a>':'<button type="button" class="download-locked" disabled title="El administrador todavía no ha autorizado las descargas">🔒 Descarga no autorizada</button>'}<button data-add="${idx}">＋ Playlist</button><button data-queue="${idx}">＋ Cola</button><button data-comments="${escapeAttr(t.id)}">💬 Comentarios</button><button data-report="${escapeAttr(t.id)}">⚑ Reportar</button>${adminVerified?`<button class="admin-delete-song" data-delete-song="${escapeAttr(t.id)}">🗑 Eliminar</button>`:""}</div></div></article>`;
 
   
  }).join(""):`<div class="empty-state"><div class="empty-icon">♫</div><h3>${tracks.length?"No encontramos esa canción":"Tu escenario está listo"}</h3><p>${tracks.length?"Prueba con otro nombre, artista o álbum.":"Las canciones que publiques aparecerán aquí."}</p></div>`;
@@ -519,6 +520,7 @@ async function requestPlaybackTicket(){
 }
 async function downloadTrack(id){
  if(!memberApproved)return;
+ if(!downloadsAllowed)return toast("Tu cuenta todavía no tiene permiso para descargar.");
  try{
   await logSongEvent(id,"download");
   const ticket=await requestPlaybackTicket();
@@ -713,6 +715,7 @@ async function checkMegaStatus(session){
 function lockMemberArea(message){
  if(novaDeviceHeartbeat){clearInterval(novaDeviceHeartbeat);novaDeviceHeartbeat=null;}
  memberApproved=false;
+ downloadsAllowed=false;
  if(notificationChannel){supabase?.removeChannel(notificationChannel);notificationChannel=null;notificationChannelUserId=null;}
  document.body.classList.add("access-locked");
  $("memberGate").classList.remove("hidden");
@@ -743,6 +746,7 @@ async function checkMemberAccess(session){
   const result=await response.json();
   if(!response.ok)throw new Error(result.error||"Tu cuenta está pendiente de aprobación.");
   memberApproved=true;
+  downloadsAllowed=Boolean(result.downloads_allowed||result.admin);
   const loginLogKey="nova_login_logged_"+session.user.id;
   if(!sessionStorage.getItem(loginLogKey)){
    fetch("https://nova-mega-server.onrender.com/member-login-event",{
@@ -796,7 +800,10 @@ function renderMemberDirectory(){
      ? '<button data-status="suspended" class="member-suspend">Suspender</button>'
      : '<button data-status="approved" class="member-approve">Dar acceso</button>';
   const devicesButton=(status==="approved"||status==="suspended")?' <button data-member-devices="1" class="member-suspend">Ver dispositivos</button>':"";
-  return `<div class="member-request-row"><div class="member-request-info"><b>${name}</b><span>${email}</span><small class="member-state state-${status}">${statusLabel}</small>${securityNote?`<small>${securityNote}</small>`:""}<div class="member-device-details" data-device-details></div></div><div class="member-request-actions" data-user-id="${escapeAttr(member.user_id)}">${actions}${devicesButton}</div></div>`;
+  const downloadAction=status==="approved"
+   ? `<div class="member-download-access"><small>Descargas: <b>${member.download_enabled===true?"Permitidas":"Bloqueadas"}</b></small><button type="button" class="member-suspend" data-download-permission="${member.download_enabled===true?"false":"true"}">${member.download_enabled===true?"Retirar permiso":"Permitir descargas"}</button></div>`
+   : "";
+  return `<div class="member-request-row"><div class="member-request-info"><b>${name}</b><span>${email}</span><small class="member-state state-${status}">${statusLabel}</small>${securityNote?`<small>${securityNote}</small>`:""}<div class="member-device-details" data-device-details></div></div><div class="member-request-actions" data-user-id="${escapeAttr(member.user_id)}">${actions}${devicesButton}${downloadAction}</div></div>`;
  }).join("");
  list.querySelectorAll(".member-request-actions button[data-status]").forEach(button=>{
   button.onclick=()=>updateMemberStatus(button.parentElement.dataset.userId,button.dataset.status);
@@ -804,6 +811,27 @@ function renderMemberDirectory(){
  list.querySelectorAll("[data-member-devices]").forEach(button=>{
   button.onclick=()=>loadMemberDevices(button.parentElement.dataset.userId,button.closest(".member-request-row").querySelector("[data-device-details]"));
  });
+ list.querySelectorAll("[data-download-permission]").forEach(button=>{
+  button.onclick=()=>updateMemberDownloadPermission(button.parentElement.parentElement.dataset.userId,button.dataset.downloadPermission==="true");
+ });
+}
+
+async function updateMemberDownloadPermission(userId,allowed){
+ const session=currentSession;
+ if(!session)return;
+ try{
+  const response=await fetch(`https://nova-mega-server.onrender.com/admin/members/${encodeURIComponent(userId)}/download-permission`,{
+   method:"PATCH",
+   headers:{Authorization:`Bearer ${session.access_token}`,"Content-Type":"application/json"},
+   body:JSON.stringify({allowed})
+  });
+  const result=await response.json();
+  if(!response.ok)throw new Error(result.error||"No se pudo actualizar el permiso");
+  toast(allowed?"Permiso de descarga concedido":"Permiso de descarga retirado");
+  await refreshMembers(session);
+ }catch(error){
+  toast(error.message);
+ }
 }
 
 async function refreshMembers(session=currentSession){
