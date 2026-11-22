@@ -808,8 +808,21 @@ async function loadMemberDevices(userId,target){
   target.innerHTML=devices.length?devices.map(device=>{
    const label=escapeHtml(device.device_label||"Dispositivo sin identificar");
    const lastSeen=new Date(device.last_seen).toLocaleString("es-MX");
-   return `<small>${label} · Última actividad: ${escapeHtml(lastSeen)}${device.revoked_at?" · Revocado":""}</small>`;
-  }).join(""):"<small>No hay dispositivos activos registrados.</small>";
+   const active=!device.revoked_at;
+   return '<div class="nova-device-row"><small>'+label+' · Última actividad: '+escapeHtml(lastSeen)+(active?'':' · Revocado')+'</small>'+(active?'<button type="button" class="nova-revoke-device" data-revoke-device="'+escapeAttr(device.device_id)+'">Revocar</button>':'')+'</div>';
+  }).join(""):"<small>No hay dispositivos registrados.</small>";
+  target.querySelectorAll("[data-revoke-device]").forEach(button=>button.onclick=async()=>{
+   if(!confirm("¿Revocar este dispositivo? Se cerrará el acceso en él cuando renueve su sesión."))return;
+   button.disabled=true;
+   try{
+    const revoke=await fetch(`https://nova-mega-server.onrender.com/admin/members/${encodeURIComponent(userId)}/devices/${encodeURIComponent(button.dataset.revokeDevice)}/revoke`,{
+     method:"POST",headers:{Authorization:`Bearer ${currentSession.access_token}`}
+    });
+    const result=await revoke.json();
+    if(!revoke.ok)throw new Error(result.error||"No se pudo revocar el dispositivo");
+    toast("Dispositivo revocado");await loadMemberDevices(userId,target);
+   }catch(error){button.disabled=false;toast(error.message);}
+  });
  }catch(error){target.textContent=error.message;}
 }
 
