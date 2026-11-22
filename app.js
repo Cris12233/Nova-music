@@ -600,15 +600,20 @@ function renderMemberDirectory(){
   const email=escapeHtml(member.email||"");
   const status=member.status;
   const statusLabel={pending:"Pendiente",approved:"Aprobado",rejected:"Rechazado",suspended:"Suspendido"}[status]||status;
+  const securityNote=member.suspension_reason==="device_limit_exceeded"?"Bloqueo automático: se detectaron más de 2 dispositivos.": "";
   const actions=status==="pending"
    ? '<button data-status="approved" class="member-approve">Aprobar</button><button data-status="rejected" class="member-reject">Rechazar</button>'
    : status==="approved"
      ? '<button data-status="suspended" class="member-suspend">Suspender</button>'
      : '<button data-status="approved" class="member-approve">Dar acceso</button>';
-  return `<div class="member-request-row"><div class="member-request-info"><b>${name}</b><span>${email}</span><small class="member-state state-${status}">${statusLabel}</small></div><div class="member-request-actions" data-user-id="${escapeAttr(member.user_id)}">${actions}</div></div>`;
+  const devicesButton=status==="suspended"?' <button data-member-devices="1" class="member-suspend">Ver dispositivos</button>':"";
+  return `<div class="member-request-row"><div class="member-request-info"><b>${name}</b><span>${email}</span><small class="member-state state-${status}">${statusLabel}</small>${securityNote?`<small>${securityNote}</small>`:""}<div class="member-device-details" data-device-details></div></div><div class="member-request-actions" data-user-id="${escapeAttr(member.user_id)}">${actions}${devicesButton}</div></div>`;
  }).join("");
- list.querySelectorAll(".member-request-actions button").forEach(button=>{
+ list.querySelectorAll(".member-request-actions button[data-status]").forEach(button=>{
   button.onclick=()=>updateMemberStatus(button.parentElement.dataset.userId,button.dataset.status);
+ });
+ list.querySelectorAll("[data-member-devices]").forEach(button=>{
+  button.onclick=()=>loadMemberDevices(button.parentElement.dataset.userId,button.closest(".member-request-row").querySelector("[data-device-details]"));
  });
 }
 
@@ -629,6 +634,24 @@ async function refreshMembers(session=currentSession){
  }catch(error){
   list.innerHTML=`<p class="message">${escapeHtml(error.message)}</p>`;
  }
+}
+
+async function loadMemberDevices(userId,target){
+ if(!currentSession||!target)return;
+ target.textContent="Consultando dispositivos…";
+ try{
+  const response=await fetch(`https://nova-mega-server.onrender.com/admin/members/${encodeURIComponent(userId)}/devices`,{
+   headers:{Authorization:`Bearer ${currentSession.access_token}`}
+  });
+  const result=await response.json();
+  if(!response.ok)throw new Error(result.error||"No se pudieron consultar los dispositivos");
+  const devices=result.devices||[];
+  target.innerHTML=devices.length?devices.map(device=>{
+   const label=escapeHtml(device.device_label||"Dispositivo sin identificar");
+   const lastSeen=new Date(device.last_seen).toLocaleString("es-MX");
+   return `<small>${label} · Última actividad: ${escapeHtml(lastSeen)}${device.revoked_at?" · Revocado":""}</small>`;
+  }).join(""):"<small>No hay dispositivos activos registrados.</small>";
+ }catch(error){target.textContent=error.message;}
 }
 
 async function updateMemberStatus(userId,status){
