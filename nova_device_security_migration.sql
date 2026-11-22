@@ -40,7 +40,7 @@ create or replace function public.nova_register_device(
 returns jsonb
 language plpgsql
 security definer
-set search_path = ''
+set search_path = pg_catalog, public, auth
 as $$
 declare
   v_user_id uuid := auth.uid();
@@ -122,7 +122,7 @@ create or replace function public.nova_touch_device(p_device_id uuid)
 returns boolean
 language plpgsql
 security definer
-set search_path = ''
+set search_path = pg_catalog, public, auth
 as $$
 declare
   v_user_id uuid := auth.uid();
