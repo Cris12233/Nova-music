@@ -50,6 +50,7 @@ audio.addEventListener("ended",()=>{
 let tracks = [], currentIndex = -1, playlists = JSON.parse(localStorage.getItem("nova_playlists") || "[]");
 let currentSession = null;
 let memberApproved = false;
+let adminVerified = false;
 let activeTrackId = null;
 let trackedPlayId = null;
 let lastHistorySave = 0;
@@ -167,12 +168,13 @@ function renderFavorites(){
     const index=tracks.indexOf(track);
     const cover=track.cover_url?`background-image:url(\'${escapeAttr(track.cover_url)}\')`:"";
     const subtitle=[track.artist||"Artista independiente",track.album].filter(Boolean).join(" · ");
-    return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${track.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${index}">▶</button></div><div class="track-info"><b>${escapeHtml(track.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(track.id)}">❤️ Quitar favorito</button><button data-play="${index}">▶ Escuchar</button><a href="#" data-download="${escapeAttr(track.id)}">↓ Descargar</a><button data-queue="${index}">＋ Cola</button></div></div></article>`;
+    return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${track.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${index}">▶</button></div><div class="track-info"><b>${escapeHtml(track.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(track.id)}">❤️ Quitar favorito</button><button data-play="${index}">▶ Escuchar</button><a href="#" data-download="${escapeAttr(track.id)}">↓ Descargar</a><button data-queue="${index}">＋ Cola</button>${adminVerified?`<button class="admin-delete-song" data-delete-song="${escapeAttr(track.id)}">🗑 Eliminar</button>`:""}</div></div></article>`;
   }).join("");
 
   grid.querySelectorAll("[data-play]").forEach(button=>button.onclick=()=>playTrack(Number(button.dataset.play)));
   grid.querySelectorAll("[data-queue]").forEach(button=>button.onclick=()=>addToQueue(Number(button.dataset.queue)));
   grid.querySelectorAll("[data-favorite]").forEach(button=>button.onclick=()=>toggleFavorite(button.dataset.favorite));
+  grid.querySelectorAll("[data-delete-song]").forEach(button=>button.onclick=()=>deleteSong(button.dataset.deleteSong));
   grid.querySelectorAll("[data-download]").forEach(button=>button.onclick=event=>{event.preventDefault();downloadTrack(button.dataset.download)});
 }
 function renderTracks(){
@@ -184,7 +186,7 @@ function renderTracks(){
   const subtitle=[t.artist||"Artista independiente",t.album].filter(Boolean).join(" · ");
   
 
-return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${t.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${idx}">▶</button></div><div class="track-info"><b>${escapeHtml(t.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(t.id)}">${favoriteTracks.includes(t.id)?"❤️":"🤍"} Favorito</button><button data-play="${idx}">▶ Escuchar</button><a href="#" data-download="${escapeAttr(t.id)}">↓ Descargar</a><button data-add="${idx}">＋ Playlist</button><button data-queue="${idx}">＋ Cola</button><button data-comments="${escapeAttr(t.id)}">💬 Comentarios</button><button data-report="${escapeAttr(t.id)}">⚑ Reportar</button></div></div></article>`;
+return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${t.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${idx}">▶</button></div><div class="track-info"><b>${escapeHtml(t.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(t.id)}">${favoriteTracks.includes(t.id)?"❤️":"🤍"} Favorito</button><button data-play="${idx}">▶ Escuchar</button><a href="#" data-download="${escapeAttr(t.id)}">↓ Descargar</a><button data-add="${idx}">＋ Playlist</button><button data-queue="${idx}">＋ Cola</button><button data-comments="${escapeAttr(t.id)}">💬 Comentarios</button><button data-report="${escapeAttr(t.id)}">⚑ Reportar</button>${adminVerified?`<button class="admin-delete-song" data-delete-song="${escapeAttr(t.id)}">🗑 Eliminar</button>`:""}</div></div></article>`;
 
   
  }).join(""):`<div class="empty-state"><div class="empty-icon">♫</div><h3>${tracks.length?"No encontramos esa canción":"Tu escenario está listo"}</h3><p>${tracks.length?"Prueba con otro nombre, artista o álbum.":"Las canciones que publiques aparecerán aquí."}</p></div>`;
@@ -199,6 +201,7 @@ return `<article class="track-card"><div class="cover" style="${cover}"><span cl
 });
  document.querySelectorAll("[data-comments]").forEach(b=>b.onclick=()=>openSongComments(b.dataset.comments));
  document.querySelectorAll("[data-report]").forEach(b=>b.onclick=()=>openSongReport(b.dataset.report));
+ document.querySelectorAll("[data-delete-song]").forEach(b=>b.onclick=()=>deleteSong(b.dataset.deleteSong));
 renderFavorites();
 }
 
@@ -383,6 +386,35 @@ $("volume").oninput=()=>audio.volume=Number($("volume").value);
 audio.onended=null;
 $("search").oninput=renderTracks;
 
+async function deleteSong(songId){
+ if(!adminVerified||!currentSession)return toast("Solo el administrador puede eliminar canciones.");
+ const song=tracks.find(track=>track.id===songId);
+ if(!song)return;
+ if(!window.confirm(`¿Eliminar “${song.title}” de NOVA MUSIC? Su archivo se enviará a la papelera de MEGA y se quitará de la biblioteca.`))return;
+ try{
+  const response=await fetch(`https://nova-mega-server.onrender.com/admin/songs/${encodeURIComponent(songId)}`,{
+   method:"DELETE",
+   headers:{Authorization:`Bearer ${currentSession.access_token}`}
+  });
+  const result=await response.json();
+  if(!response.ok)throw new Error(result.error||"No se pudo eliminar la canción.");
+  tracks=tracks.filter(track=>track.id!==songId);
+  playQueue=playQueue.filter(track=>track.id!==songId);
+  favoriteTracks=favoriteTracks.filter(id=>id!==songId);
+  localStorage.setItem("nova_favorites",JSON.stringify(favoriteTracks));
+  if(activeTrackId===songId){
+   audio.pause();audio.removeAttribute("src");audio.load();
+   activeTrackId=null;trackedPlayId=null;currentIndex=-1;
+   $("nowTitle").textContent="Selecciona una canción";
+   $("nowArtist").textContent="NOVA MUSIC";
+  }else{currentIndex=tracks.findIndex(track=>track.id===tracks[currentIndex]?.id);}
+  renderTracks();
+  renderQueue();
+  void loadAdminInsights();
+  toast("Canción eliminada correctamente.");
+ }catch(error){toast(error.message||"No se pudo eliminar la canción.");}
+}
+
 async function loadTracks(){
  if(!memberApproved)return;
  if(!supabase){$("trackGrid").innerHTML='<div class="empty-state"><div class="empty-icon">⚙</div><h3>Falta conectar Supabase</h3><p>Abre README.txt y sigue los pasos para activar tu biblioteca musical.</p></div>';return}
@@ -418,6 +450,7 @@ async function refreshSession(){
 
 function showSession(session){
  currentSession=session||null;
+ if(!session)adminVerified=false;
 
  // Una sesión válida no debe ocultar el panel de subida.
  // Supabase puede emitir TOKEN_REFRESHED mientras el administrador trabaja.
@@ -439,6 +472,7 @@ async function checkMegaStatus(session){
   });
   const result=await response.json();
   if(!response.ok)throw new Error(result.error||"Esta cuenta no es administradora");
+  adminVerified=true;
   $("authForm").classList.add("hidden");
   $("uploadPanel").classList.remove("hidden");
   $("adminMessage").textContent="¡MEGA conectado correctamente!";
@@ -446,6 +480,7 @@ async function checkMegaStatus(session){
   void loadAdminInsights(session);
   return true;
  }catch(error){
+  adminVerified=false;
   $("uploadPanel").classList.add("hidden");
   $("authForm").classList.remove("hidden");
   $("adminMessage").textContent=error.message;
