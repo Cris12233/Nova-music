@@ -125,11 +125,6 @@ function toggleFavorite(id){
   localStorage.setItem("nova_favorites",JSON.stringify(favoriteTracks));
   renderTracks();
 }
-
-  localStorage.setItem("nova_favorites",JSON.stringify(favoriteTracks));
-  renderTracks();
-
-}
 function renderTracks(){
  const q=$("search").value.toLowerCase();
  const shown=tracks.filter(t=>(t.title+" "+(t.artist||"")+" "+(t.album||"")).toLowerCase().includes(q));
