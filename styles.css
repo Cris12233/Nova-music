@@ -3415,3 +3415,8 @@ body.access-locked .nova-bottom-nav{display:none!important}
 .nova-analytics-day>div{height:72px;width:min(100%,24px);display:flex;align-items:flex-end;background:#ffffff08;border-radius:8px;overflow:hidden}
 .nova-analytics-day i{display:block;width:100%;min-height:4px;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,var(--accent),var(--purple))}
 .nova-analytics-day small{font-size:9px;color:var(--muted);text-transform:capitalize}
+
+.nova-device-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}
+.nova-device-row small{font-size:10px;color:var(--muted);overflow-wrap:anywhere}
+.nova-revoke-device{flex:0 0 auto;border:1px solid #ff7f9455;color:#ff9bad;background:#ff7f9410;border-radius:16px;padding:5px 9px;font-size:10px}
+.nova-revoke-device:disabled{opacity:.5}
