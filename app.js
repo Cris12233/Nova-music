@@ -355,38 +355,60 @@ async function checkMemberAccess(session){
  }
 }
 
+let memberDirectory = [];
+let memberFilter = "pending";
+
+function renderMemberDirectory(){
+ const list=$("memberRequestsList");
+ const counts={pending:0,approved:0,rejected:0,suspended:0};
+ memberDirectory.forEach(member=>{if(counts[member.status]!==undefined)counts[member.status]++;});
+ const filters=[
+  ["pending","Pendientes"],["approved","Aprobados"],
+  ["rejected","Rechazados"],["suspended","Suspendidos"]
+ ];
+ const tabs=$("memberStatusFilters");
+ if(tabs){
+  tabs.innerHTML=filters.map(([status,label])=>`<button type="button" class="member-filter ${memberFilter===status?"active":""}" data-member-filter="${status}"><span>${label}</span><b>${counts[status]}</b></button>`).join("");
+  tabs.querySelectorAll("[data-member-filter]").forEach(button=>{
+   button.onclick=()=>{memberFilter=button.dataset.memberFilter;renderMemberDirectory();};
+  });
+ }
+ const visible=memberDirectory.filter(member=>member.status===memberFilter);
+ if(!visible.length){
+  list.innerHTML=`<div class="member-empty"><b>No hay usuarios ${({pending:"pendientes",approved:"aprobados",rejected:"rechazados",suspended:"suspendidos"})[memberFilter]}.</b><span>Cuando haya cuentas en esta categoría aparecerán aquí.</span></div>`;
+  return;
+ }
+ list.innerHTML=visible.map(member=>{
+  const name=escapeHtml(member.display_name||"Sin nombre");
+  const email=escapeHtml(member.email||"");
+  const status=member.status;
+  const statusLabel={pending:"Pendiente",approved:"Aprobado",rejected:"Rechazado",suspended:"Suspendido"}[status]||status;
+  const actions=status==="pending"
+   ? '<button data-status="approved" class="member-approve">Aprobar</button><button data-status="rejected" class="member-reject">Rechazar</button>'
+   : status==="approved"
+     ? '<button data-status="suspended" class="member-suspend">Suspender</button>'
+     : '<button data-status="approved" class="member-approve">Dar acceso</button>';
+  return `<div class="member-request-row"><div class="member-request-info"><b>${name}</b><span>${email}</span><small class="member-state state-${status}">${statusLabel}</small></div><div class="member-request-actions" data-user-id="${escapeAttr(member.user_id)}">${actions}</div></div>`;
+ }).join("");
+ list.querySelectorAll(".member-request-actions button").forEach(button=>{
+  button.onclick=()=>updateMemberStatus(button.parentElement.dataset.userId,button.dataset.status);
+ });
+}
+
 async function refreshMembers(session=currentSession){
  const panel=$("memberRequests");
  const list=$("memberRequestsList");
  if(!panel||!session)return;
  panel.classList.remove("hidden");
- list.innerHTML='<p class="muted-text">Cargando solicitudes…</p>';
+ list.innerHTML='<p class="muted-text">Cargando usuarios…</p>';
  try{
   const response=await fetch("https://nova-mega-server.onrender.com/admin/members",{
    headers:{Authorization:`Bearer ${session.access_token}`}
   });
   const result=await response.json();
-  if(!response.ok)throw new Error(result.error||"No se pudieron cargar las solicitudes");
-  const members=result.members||[];
-  if(!members.length){
-   list.innerHTML='<p class="muted-text">Todavía no hay solicitudes de acceso.</p>';
-   return;
-  }
-  list.innerHTML=members.map(member=>{
-   const name=escapeHtml(member.display_name||"Sin nombre");
-   const email=escapeHtml(member.email||"");
-   const status=member.status;
-   const statusLabel={pending:"Pendiente",approved:"Aprobada",rejected:"Rechazada",suspended:"Suspendida"}[status]||status;
-   const actions=status==="pending"
-    ? '<button data-status="approved">Aprobar</button><button data-status="rejected">Rechazar</button>'
-    : status==="approved"
-      ? '<button data-status="suspended">Suspender</button>'
-      : '<button data-status="approved">Aprobar acceso</button><button data-status="rejected">Rechazar</button>';
-   return `<div class="member-request-row"><div class="member-request-info"><b>${name}</b><span>${email} · ${statusLabel}</span></div><div class="member-request-actions" data-user-id="${escapeAttr(member.user_id)}">${actions}</div></div>`;
-  }).join("");
-  list.querySelectorAll(".member-request-actions button").forEach(button=>{
-   button.onclick=()=>updateMemberStatus(button.parentElement.dataset.userId,button.dataset.status);
-  });
+  if(!response.ok)throw new Error(result.error||"No se pudieron cargar los usuarios");
+  memberDirectory=result.members||[];
+  renderMemberDirectory();
  }catch(error){
   list.innerHTML=`<p class="message">${escapeHtml(error.message)}</p>`;
  }
