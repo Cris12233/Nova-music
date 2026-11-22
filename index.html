@@ -111,6 +111,8 @@
     <p class="muted-text">Todavía no tienes canciones favoritas.</p>
   </div>
     </section>
+    <section class="playlist-section community-section" id="historySection"><div class="section-head compact"><div><p class="eyebrow">TU ACTIVIDAD</p><h2>Historial de escucha</h2></div></div><div id="historyGrid" class="community-history-list"><p class="muted-text">Tus canciones escuchadas aparecerán aquí.</p></div></section>
+    <section class="playlist-section community-section" id="notificationsSection"><div class="section-head compact"><div><p class="eyebrow">NOVEDADES</p><h2>Notificaciones <span class="count" id="notificationCount">0</span></h2></div></div><div id="notificationsList" class="community-notifications"><p class="muted-text">Todavía no tienes notificaciones.</p></div></section>
     <section class="playlist-section">
       <div class="section-head compact"><div><p class="eyebrow">TU ESPACIO PERSONAL</p><h2>Mis playlists</h2></div><button class="outline-btn" id="newPlaylist">＋ Crear playlist</button></div>
       <div id="playlistGrid" class="playlist-grid"><p class="muted-text">Todavía no tienes playlists. Crea una para guardar tus favoritas.</p></div>
@@ -199,6 +201,7 @@
           <div id="memberStatusFilters" class="member-status-filters" aria-label="Filtrar usuarios por estado"></div>
           <div id="memberRequestsList"><p class="muted-text">Cargando usuarios…</p></div>
         </div>
+        <section id="adminInsights" class="admin-insights"><div class="member-requests-head"><div><b>Estadísticas y reportes</b><span>Reproducciones, descargas y problemas enviados por miembros.</span></div><button id="refreshAdminInsights" class="outline-btn" type="button">Actualizar</button></div><div id="adminStats"><p class="muted-text">Cargando estadísticas…</p></div><h3>Reportes de canciones</h3><div id="adminReportsList"><p class="muted-text">Cargando reportes…</p></div></section>
         <div class="bulk-intro"><b>Subida masiva</b><span>Agrega canciones sueltas o un álbum completo en una sola operación.</span></div>
         <label>Opción 1 · Seleccionar canciones</label>
         <input id="bulkFiles" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" multiple>
@@ -231,6 +234,7 @@
       <button class="primary-btn full" id="createPlaylist">Crear playlist</button>
     </div>
   </div>
+  <div class="modal-backdrop" id="communityModal"><div class="modal small-modal"><button class="close-btn" data-close="communityModal">×</button><p class="eyebrow">COMUNIDAD NOVA</p><h2 id="communityTitle">Comentarios</h2><div id="communityContent"></div></div></div>
   <div class="toast" id="toast"></div>
   <script type="module" src="app.js"></script>
 
