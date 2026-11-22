@@ -88,6 +88,9 @@ on conflict (user_id) do nothing;
 alter table public.songs
   add column if not exists is_published boolean not null default true;
 
+-- Asegurar que RLS esté activo antes de aplicar las políticas del catálogo.
+alter table public.songs enable row level security;
+
 -- Restringir el catálogo: solo miembros aprobados y administradores.
 drop policy if exists "Public can read songs" on public.songs;
 drop policy if exists "Public can read published songs" on public.songs;
@@ -134,7 +137,14 @@ set public = false
 where id = 'music';
 
 drop policy if exists "Public can read music" on storage.objects;
+drop policy if exists "Public can read covers" on storage.objects;
 drop policy if exists "Approved members can read music" on storage.objects;
+
+-- Mantener públicas únicamente las portadas; no abrir el bucket de audio.
+create policy "Public can read covers"
+on storage.objects for select to public
+using (bucket_id = 'covers');
+
 create policy "Approved members can read music"
 on storage.objects for select to authenticated
 using (
