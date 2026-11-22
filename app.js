@@ -417,9 +417,17 @@ async function refreshSession(){
 
 function showSession(session){
  currentSession=session||null;
+
+ // Una sesión válida no debe ocultar el panel de subida.
+ // Supabase puede emitir TOKEN_REFRESHED mientras el administrador trabaja.
+ if(session){
+  $("signedEmail").textContent=session.user.email||"Cuenta conectada";
+  return;
+ }
+
+ // Solo al cerrar sesión o perderla mostramos el formulario de acceso.
  $("authForm").classList.remove("hidden");
  $("uploadPanel").classList.add("hidden");
- if(session)$("signedEmail").textContent=session.user.email||"Cuenta conectada";
 }
 
 async function checkMegaStatus(session){
