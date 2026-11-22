@@ -2854,3 +2854,34 @@ body.access-locked .nova-bottom-nav{display:none!important}
 .topbar,.player{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 @media(max-width:600px){.ambient{filter:blur(55px);opacity:.12}.track-card:hover{transform:none;box-shadow:none}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+
+/* NOVA MUSIC — apertura ligera del panel de artista en móviles */
+#adminModal {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background: rgba(4, 5, 14, .88);
+  animation: none !important;
+  contain: layout paint;
+}
+#adminModal.open {
+  display: grid;
+}
+#adminModal .modal {
+  animation: none !important;
+  transform: none !important;
+  will-change: auto;
+  contain: layout paint;
+}
+#adminOpen {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+@media (max-width: 600px) {
+  #adminModal {
+    padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+  }
+  #adminModal .modal {
+    max-height: calc(100dvh - 24px);
+  }
+}
