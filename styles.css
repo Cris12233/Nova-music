@@ -2771,3 +2771,50 @@ footer {
     animation-duration: .01ms !important;
   }
 }
+
+
+/* NOVA MUSIC — acceso privado y solicitudes de membresía */
+body.access-locked .shell,
+body.access-locked footer,
+body.access-locked .player,
+body.access-locked .full-player,
+body.access-locked .nova-bottom-nav{display:none!important}
+.member-gate{min-height:calc(100vh - 78px);display:grid;place-items:center;padding:38px 20px 70px}
+.member-gate-card{width:min(850px,100%);padding:clamp(24px,5vw,48px);border:1px solid #ffffff18;border-radius:26px;background:radial-gradient(circle at 90% 0%,#a78bfa18,transparent 38%),linear-gradient(145deg,#171d2b,#0e121c);box-shadow:0 25px 90px #0007}
+.member-gate-card>h1{font-size:clamp(32px,5vw,52px);margin:0 0 12px}
+.member-gate-card>h1 span{color:var(--accent)}
+.member-gate-description{max-width:610px;color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:28px}
+.member-gate-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.member-gate-form{padding:20px;border:1px solid #ffffff12;border-radius:17px;background:#080c1490}
+.member-gate-form h2{font:600 18px "Space Grotesk";margin-bottom:14px}
+.member-gate-form label{display:block;color:#c8cdda;font-size:11px;margin:13px 0 7px}
+.member-gate-form input{width:100%;background:#0c1019;border:1px solid var(--line);border-radius:10px;padding:12px;color:white;outline:none}
+.member-gate-form input:focus{border-color:#b9ff6688}
+.member-gate-form .primary-btn{margin-top:16px}
+#memberGateMessage{padding:13px 15px;border:1px solid #b9ff6630;border-radius:12px;background:#b9ff660b;line-height:1.6}
+.member-requests{margin:15px 0 20px;padding:15px;border:1px solid #a78bfa45;border-radius:14px;background:#a78bfa0b}
+.member-requests-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.member-requests-head b,.member-requests-head span{display:block}
+.member-requests-head b{font:600 14px "Space Grotesk"}
+.member-requests-head span{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.5}
+.member-request-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid #ffffff12}
+.member-request-info{min-width:0}
+.member-request-info b,.member-request-info span{display:block;overflow-wrap:anywhere}
+.member-request-info b{font-size:11px}
+.member-request-info span{font-size:10px;color:var(--muted);margin-top:4px}
+.member-request-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.member-request-actions button{border:1px solid var(--line);border-radius:20px;background:#ffffff08;color:#e8eaf2;padding:7px 10px;font-size:9px}
+.member-request-actions button[data-status="approved"]{border-color:#b9ff6660;color:var(--accent)}
+.member-request-actions button[data-status="rejected"],.member-request-actions button[data-status="suspended"]{border-color:#ff858560;color:#ffaaaa}
+@media(max-width:600px){
+ .member-gate{min-height:calc(100vh - 65px);padding:24px 15px 45px}
+ .member-gate-grid{grid-template-columns:1fr}
+ .member-gate-card{padding:22px 17px}
+ .member-requests-head{align-items:flex-start;flex-direction:column}
+ .member-request-row{align-items:flex-start;flex-direction:column}
+ .member-request-actions{justify-content:flex-start}
+}
+
+
+.member-gate-actions{display:flex;align-items:center;gap:14px;margin-top:14px}
+.member-gate-actions .text-btn{margin-left:0}

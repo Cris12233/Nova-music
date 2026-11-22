@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="access-locked">
   <div class="ambient ambient-a"></div><div class="ambient ambient-b"></div>
   <header class="topbar">
     <a class="brand" href="#"><span class="brand-mark">N</span><span>NOVA<span class="muted">MUSIC</span></span></a>
@@ -19,6 +19,40 @@
       <button class="ghost-btn" id="adminOpen">Panel de artista</button>
     </div>
   </header>
+
+
+  <section id="memberGate" class="member-gate" aria-live="polite">
+    <div class="member-gate-card">
+      <p class="eyebrow">ACCESO POR INVITACIÓN</p>
+      <h1>Bienvenido a <span>NOVA MUSIC</span></h1>
+      <p class="member-gate-description">Solicita tu cuenta y espera a que el administrador apruebe tu acceso. La biblioteca permanece privada hasta entonces.</p>
+      <div class="member-gate-grid">
+        <div class="member-gate-form">
+          <h2>Ya tengo cuenta</h2>
+          <label for="memberLoginEmail">Correo electrónico</label>
+          <input id="memberLoginEmail" type="email" autocomplete="email" placeholder="tu@correo.com">
+          <label for="memberLoginPassword">Contraseña</label>
+          <input id="memberLoginPassword" type="password" autocomplete="current-password" placeholder="Tu contraseña">
+          <button class="primary-btn full" id="memberLoginBtn">Iniciar sesión</button>
+        </div>
+        <div class="member-gate-form">
+          <h2>Solicitar acceso</h2>
+          <label for="memberName">Nombre</label>
+          <input id="memberName" autocomplete="name" placeholder="Cómo te llamas">
+          <label for="memberEmail">Correo electrónico</label>
+          <input id="memberEmail" type="email" autocomplete="email" placeholder="tu@correo.com">
+          <label for="memberPassword">Crear contraseña</label>
+          <input id="memberPassword" type="password" autocomplete="new-password" minlength="6" placeholder="Mínimo 6 caracteres">
+          <button class="primary-btn full" id="memberRegisterBtn">Enviar solicitud</button>
+        </div>
+      </div>
+      <p id="memberGateMessage" class="message" role="status">Tu acceso será habilitado cuando el administrador apruebe tu solicitud.</p>
+      <div class="member-gate-actions">
+        <button id="memberRefreshBtn" class="outline-btn hidden" type="button">Revisar mi acceso</button>
+        <button id="memberLogoutBtn" class="text-btn hidden" type="button">Cerrar sesión</button>
+      </div>
+    </div>
+  </section>
 
   <main class="shell">
     <section class="hero">
@@ -155,6 +189,13 @@
       </div>
       <div id="uploadPanel" class="hidden">
         <div class="signed-in"><span class="live-dot"></span><span id="signedEmail"></span><button class="text-btn" id="logoutBtn">Cerrar sesión</button></div>
+        <div id="memberRequests" class="member-requests hidden">
+          <div class="member-requests-head">
+            <div><b>Solicitudes de acceso</b><span>Aprueba o rechaza quién puede entrar a NOVA MUSIC.</span></div>
+            <button class="outline-btn" id="refreshMembersBtn" type="button">Actualizar</button>
+          </div>
+          <div id="memberRequestsList"><p class="muted-text">Cargando solicitudes…</p></div>
+        </div>
         <div class="bulk-intro"><b>Subida masiva</b><span>Agrega canciones sueltas o un álbum completo en una sola operación.</span></div>
         <label>Opción 1 · Seleccionar canciones</label>
         <input id="bulkFiles" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" multiple>
