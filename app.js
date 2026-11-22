@@ -476,6 +476,9 @@ async function checkMegaStatus(session){
   $("authForm").classList.add("hidden");
   $("uploadPanel").classList.remove("hidden");
   $("adminMessage").textContent="¡MEGA conectado correctamente!";
+  // La biblioteca puede haberse renderizado antes de confirmar al administrador.
+  // Volvemos a dibujarla para mostrar las acciones exclusivas del administrador.
+  if(memberApproved)renderTracks();
   void refreshMembers(session);
   void loadAdminInsights(session);
   return true;
