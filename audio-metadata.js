@@ -4,15 +4,15 @@ function decodeId3Text(bytes){
  const encoding=bytes[0];
  const data=bytes.subarray(1);
  try{
-  if(encoding===0)return new TextDecoder("windows-1252").decode(data).replace(/\\0+$/g,"").trim();
-  if(encoding===3)return new TextDecoder("utf-8").decode(data).replace(/\\0+$/g,"").trim();
+  if(encoding===0)return new TextDecoder("windows-1252").decode(data).replace(/\0+$/g,"").trim();
+  if(encoding===3)return new TextDecoder("utf-8").decode(data).replace(/\0+$/g,"").trim();
   if(encoding===1){
    let start=0;
    if(data[0]===0xff&&data[1]===0xfe)start=2;
    else if(data[0]===0xfe&&data[1]===0xff)start=2;
-   return new TextDecoder("utf-16").decode(data.subarray(start)).replace(/\\0+$/g,"").trim();
+   return new TextDecoder("utf-16").decode(data.subarray(start)).replace(/\0+$/g,"").trim();
   }
-  if(encoding===2)return new TextDecoder("utf-16be").decode(data).replace(/\\0+$/g,"").trim();
+  if(encoding===2)return new TextDecoder("utf-16be").decode(data).replace(/\0+$/g,"").trim();
  }catch(_error){}
  return "";
 }
@@ -42,7 +42,7 @@ export async function readAudioMetadata(file){
     frameSize=major===4?syncSafeSize(bytes,offset+4):((bytes[offset+4]<<24)|(bytes[offset+5]<<16)|(bytes[offset+6]<<8)|bytes[offset+7]);
     headerSize=10;
    }
-   if(!frameId.trim()||/^\\0+$/.test(frameId)||!Number.isFinite(frameSize)||frameSize<=0)break;
+   if(!frameId.trim()||/^\0+$/.test(frameId)||!Number.isFinite(frameSize)||frameSize<=0)break;
    const start=offset+headerSize,end=Math.min(tagEnd,start+frameSize);
    if(end<=start)break;
    const field=ids[frameId];
