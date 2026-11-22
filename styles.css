@@ -2529,3 +2529,245 @@ footer {
     transition: none !important;
   }
 }
+
+/* =====================================================
+   NOVA MUSIC — REPRODUCTOR EXPANDIDO PREMIUM 2026
+   Solo CSS: conserva intactos HTML, JavaScript y controles
+   ===================================================== */
+#fullPlayer {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  isolation: isolate;
+  background:
+    radial-gradient(ellipse at 50% 18%, rgba(143, 103, 255, .24), transparent 38%),
+    radial-gradient(ellipse at 8% 82%, rgba(54, 165, 255, .12), transparent 34%),
+    linear-gradient(155deg, #14142b 0%, #090a17 54%, #080910 100%);
+}
+
+#fullPlayer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .5;
+  background-image: radial-gradient(rgba(210, 194, 255, .22) .7px, transparent .7px);
+  background-size: 26px 26px;
+  mask-image: linear-gradient(to bottom, black, transparent 80%);
+}
+
+#fullPlayer .eyebrow {
+  margin: 0 0 8px;
+  color: #c4adff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 3.2px;
+  text-shadow: 0 0 20px rgba(167, 139, 250, .35);
+}
+
+#fullPlayer .full-player-close {
+  top: max(22px, env(safe-area-inset-top));
+  left: max(22px, env(safe-area-inset-left));
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(194, 174, 255, .2);
+  background: rgba(255, 255, 255, .07);
+  color: #eee8ff;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, .25);
+  backdrop-filter: blur(14px);
+  transition: transform .25s ease, background .25s ease, border-color .25s ease;
+}
+
+#fullPlayer .full-player-close:hover {
+  transform: translateY(-2px);
+  border-color: rgba(194, 174, 255, .55);
+  background: rgba(139, 92, 246, .2);
+}
+
+#fullPlayer .full-cover {
+  position: relative;
+  width: min(68vw, 350px);
+  margin: clamp(18px, 3vh, 30px) 0 25px;
+  overflow: hidden;
+  border: 1px solid rgba(202, 180, 255, .38);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 25% 18%, rgba(218, 199, 255, .42), transparent 34%),
+    linear-gradient(145deg, #7252c9, #26345f 58%, #111629);
+  box-shadow: 0 28px 75px rgba(0, 0, 0, .48),
+              0 0 0 8px rgba(167, 139, 250, .045),
+              0 0 48px rgba(139, 92, 246, .2);
+  font-size: clamp(64px, 12vw, 92px);
+  transition: transform .4s cubic-bezier(.2,.8,.2,1), box-shadow .4s ease;
+}
+
+#fullPlayer .full-cover:hover {
+  transform: translateY(-4px) scale(1.012);
+  box-shadow: 0 34px 85px rgba(0, 0, 0, .5),
+              0 0 58px rgba(139, 92, 246, .28);
+}
+
+#fullPlayer .full-song-info {
+  width: min(100%, 460px);
+  padding: 0 12px;
+}
+
+#fullPlayer .full-song-info h2 {
+  margin: 8px 0 7px;
+  color: #faf7ff;
+  font: 700 clamp(22px, 4vw, 30px)/1.2 "Space Grotesk", sans-serif;
+  letter-spacing: -.7px;
+  text-shadow: 0 4px 25px rgba(167, 139, 250, .16);
+}
+
+#fullPlayer .full-song-info p {
+  color: #aaa6c4;
+  font-size: 13px;
+  letter-spacing: .3px;
+}
+
+#fullPlayer .full-progress {
+  width: min(100%, 440px);
+  margin-top: 25px;
+  padding: 0 5px;
+}
+
+#fullPlayer .full-progress input {
+  display: block;
+  height: 5px;
+  margin: 0 0 11px;
+  border-radius: 99px;
+  accent-color: #b69aff;
+  cursor: pointer;
+}
+
+#fullPlayer .full-progress div {
+  color: #8f8ba8;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+#fullPlayer .full-controls {
+  gap: 27px;
+  margin: 25px 0 20px;
+}
+
+#fullPlayer .full-controls button {
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(193, 173, 255, .16);
+  background: rgba(255, 255, 255, .065);
+  color: #e8e1ff;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, .2);
+  transition: transform .22s ease, background .22s ease, box-shadow .22s ease;
+}
+
+#fullPlayer .full-controls button:hover {
+  transform: translateY(-3px);
+  background: rgba(139, 92, 246, .2);
+  box-shadow: 0 10px 28px rgba(139, 92, 246, .2);
+}
+
+#fullPlayer #fullPlay {
+  width: 72px;
+  height: 72px;
+  border: 1px solid rgba(225, 212, 255, .48);
+  background: linear-gradient(135deg, #c3a8ff, #7a69f5 58%, #4b9eea);
+  color: #100d20;
+  box-shadow: 0 10px 35px rgba(139, 92, 246, .4),
+              inset 0 1px 0 rgba(255, 255, 255, .45);
+}
+
+#fullPlayer #fullPlay:hover {
+  transform: translateY(-3px) scale(1.045);
+  box-shadow: 0 14px 42px rgba(139, 92, 246, .55);
+}
+
+#fullPlayer .full-extra {
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: max(8px, env(safe-area-inset-bottom));
+}
+
+#fullPlayer .full-extra button {
+  min-height: 42px;
+  padding: 10px 17px;
+  border: 1px solid rgba(183, 158, 255, .2);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .055);
+  color: #c9c1df;
+  font-size: 11px;
+  font-weight: 700;
+  transition: transform .2s ease, border-color .2s ease, background .2s ease;
+}
+
+#fullPlayer .full-extra button:hover {
+  transform: translateY(-2px);
+  border-color: rgba(183, 158, 255, .52);
+  background: rgba(139, 92, 246, .14);
+  color: #fff;
+}
+
+@media (max-height: 720px) {
+  #fullPlayer {
+    justify-content: flex-start;
+    padding-top: max(72px, env(safe-area-inset-top));
+    padding-bottom: max(18px, env(safe-area-inset-bottom));
+  }
+
+  #fullPlayer .full-cover {
+    width: min(48vh, 260px, 62vw);
+    margin: 12px 0 17px;
+  }
+
+  #fullPlayer .full-progress {
+    margin-top: 17px;
+  }
+
+  #fullPlayer .full-controls {
+    margin: 17px 0 13px;
+  }
+}
+
+@media (max-width: 600px) {
+  #fullPlayer {
+    padding-left: 22px;
+    padding-right: 22px;
+  }
+
+  #fullPlayer .full-cover {
+    width: min(70vw, 310px);
+    margin: 20px 0 21px;
+    border-radius: 22px;
+  }
+
+  #fullPlayer .full-song-info h2 {
+    font-size: 23px;
+  }
+
+  #fullPlayer .full-controls {
+    gap: 22px;
+  }
+
+  #fullPlayer .full-controls button {
+    width: 49px;
+    height: 49px;
+  }
+
+  #fullPlayer #fullPlay {
+    width: 66px;
+    height: 66px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #fullPlayer *,
+  #fullPlayer *::before,
+  #fullPlayer *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
