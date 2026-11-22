@@ -73,6 +73,19 @@ create trigger nova_create_pending_user_access
 after insert on auth.users
 for each row execute function public.create_pending_user_access();
 
+-- Las cuentas existentes que no son administradoras también empiezan pendientes.
+insert into public.user_access (user_id, email, display_name, status)
+select
+  u.id,
+  coalesce(u.email, ''),
+  nullif(u.raw_user_meta_data ->> 'display_name', ''),
+  'pending'
+from auth.users u
+where not exists (
+  select 1 from public.artist_admins a where a.user_id = u.id
+)
+on conflict (user_id) do nothing;
+
 -- Las canciones existentes conservan is_published=true.
 alter table public.songs
   add column if not exists is_published boolean not null default true;
