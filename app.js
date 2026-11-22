@@ -894,6 +894,7 @@ $("memberRefreshBtn").onclick=async()=>{
  if(currentSession)await checkMemberAccess(currentSession);
 };
 $("memberLogoutBtn").onclick=async()=>{
+ if(currentSession?.user?.id)sessionStorage.removeItem("nova_login_logged_"+currentSession.user.id);
  if(supabase)await supabase.auth.signOut();
  showSession(null);
  lockMemberArea("Sesión cerrada. Inicia sesión o solicita acceso para entrar.");
