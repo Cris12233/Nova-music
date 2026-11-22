@@ -118,7 +118,7 @@ create index if not exists nova_login_events_user_created_idx
 
 alter table public.nova_login_events enable row level security;
 
-do $
+do $$
 begin
   if not exists (select 1 from pg_policies where schemaname='public' and tablename='nova_login_events' and policyname='NOVA admins read login history') then
     create policy "NOVA admins read login history"
@@ -133,7 +133,7 @@ begin
         and (public.is_nova_member_approved() or public.is_nova_admin())
       );
   end if;
-end $;
+end $$;
 
 grant select, insert on public.nova_login_events to authenticated;
 
@@ -143,7 +143,7 @@ returns boolean
 language plpgsql
 security definer
 set search_path = pg_catalog, public, auth
-as $
+as $$
 declare
   affected integer;
 begin
@@ -157,8 +157,8 @@ begin
      and revoked_at is null;
   get diagnostics affected = row_count;
   return affected > 0;
-end;
-$;
+end; 
+$$;
 
 revoke all on function public.nova_admin_revoke_device(uuid, uuid) from public, anon;
 grant execute on function public.nova_admin_revoke_device(uuid, uuid) to authenticated;
