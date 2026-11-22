@@ -156,3 +156,29 @@ $$;
 
 revoke all on function public.nova_touch_device(uuid) from public;
 grant execute on function public.nova_touch_device(uuid) to authenticated;
+
+
+-- Al volver a aprobar una cuenta, el administrador reinicia sus dispositivos.
+create or replace function public.nova_admin_clear_devices(p_user_id uuid)
+returns integer
+language plpgsql
+security definer
+set search_path = pg_catalog, public, auth
+as $$
+declare
+  v_deleted integer;
+begin
+  if not public.is_nova_admin() then
+    raise exception 'admin_required';
+  end if;
+
+  delete from public.nova_device_sessions
+  where user_id = p_user_id;
+
+  get diagnostics v_deleted = row_count;
+  return v_deleted;
+end;
+$$;
+
+revoke all on function public.nova_admin_clear_devices(uuid) from public;
+grant execute on function public.nova_admin_clear_devices(uuid) to authenticated;
