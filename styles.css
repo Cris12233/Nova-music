@@ -2271,3 +2271,261 @@ footer {
 #adminModal .modal::-webkit-scrollbar-thumb{border-radius:99px;background:rgba(167,139,250,.48)}
 @media(max-width:600px){#adminModal{align-items:flex-start;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom))}#adminModal .modal{width:100%;max-height:calc(100dvh - 24px);margin:auto 0;padding:23px 18px;border-radius:21px}#adminModal .modal-desc{margin-bottom:19px}#adminModal .signed-in{align-items:flex-start}#adminModal .bulk-progress-head{display:grid}}
 @media(prefers-reduced-motion:reduce){#adminModal *,#adminModal *:before,#adminModal *:after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+
+/* =====================================================
+   NOVA MUSIC — BIBLIOTECA PREMIUM 2026 | SOLO CSS
+   Mejora visual de tarjetas, portadas y estados de biblioteca
+   ===================================================== */
+#trackGrid,
+#favoritesGrid {
+  align-items: stretch;
+  gap: 20px;
+}
+
+#trackGrid .track-card,
+#favoritesGrid .track-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 13px;
+  border: 1px solid rgba(184, 158, 255, .2);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(126, 94, 235, .16), transparent 42%),
+    linear-gradient(155deg, rgba(29, 27, 53, .96), rgba(12, 16, 31, .98));
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .24),
+              inset 0 1px 0 rgba(255, 255, 255, .055);
+  transition: transform .32s cubic-bezier(.2,.8,.2,1),
+              border-color .32s ease, box-shadow .32s ease;
+}
+
+#trackGrid .track-card::before,
+#favoritesGrid .track-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(125deg, rgba(170, 139, 255, .12), transparent 48%, rgba(85, 199, 255, .07));
+  transition: opacity .3s ease;
+}
+
+#trackGrid .track-card:hover,
+#favoritesGrid .track-card:hover {
+  transform: translateY(-7px);
+  border-color: rgba(184, 158, 255, .62);
+  box-shadow: 0 22px 48px rgba(74, 49, 145, .24),
+              0 0 0 1px rgba(184, 158, 255, .08);
+}
+
+#trackGrid .track-card:hover::before,
+#favoritesGrid .track-card:hover::before {
+  opacity: 1;
+}
+
+#trackGrid .cover,
+#favoritesGrid .cover {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  min-height: 125px;
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 25% 20%, rgba(190, 165, 255, .35), transparent 35%),
+    linear-gradient(145deg, #29254c, #172d4a 58%, #111827);
+  box-shadow: inset 0 0 38px rgba(0, 0, 0, .2);
+}
+
+#trackGrid .cover::before,
+#favoritesGrid .cover::before {
+  content: "♫";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(232, 221, 255, .72);
+  font: 500 clamp(42px, 5vw, 64px) "Space Grotesk", sans-serif;
+  text-shadow: 0 0 28px rgba(167, 139, 250, .42);
+  pointer-events: none;
+}
+
+#trackGrid .cover img,
+#favoritesGrid .cover img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  object-fit: cover;
+  border-radius: inherit;
+  transition: transform .55s cubic-bezier(.2,.8,.2,1), filter .4s ease;
+}
+
+#trackGrid .track-card:hover .cover img,
+#favoritesGrid .track-card:hover .cover img {
+  transform: scale(1.055);
+  filter: saturate(1.08) brightness(1.06);
+}
+
+#trackGrid .cover::after,
+#favoritesGrid .cover::after {
+  content: "";
+  position: absolute;
+  inset: 45% 0 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(transparent, rgba(5, 7, 17, .28));
+}
+
+#trackGrid .card-play,
+#favoritesGrid .card-play {
+  z-index: 3;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(255, 255, 255, .28);
+  border-radius: 15px;
+  background: linear-gradient(135deg, #c0a5ff, #668bff);
+  color: #100d20;
+  box-shadow: 0 8px 24px rgba(102, 112, 240, .38);
+  transition: transform .25s ease, box-shadow .25s ease;
+}
+
+#trackGrid .card-play:hover,
+#favoritesGrid .card-play:hover {
+  transform: translateY(-3px) scale(1.06);
+  box-shadow: 0 12px 30px rgba(139, 92, 246, .5);
+}
+
+#trackGrid .track-info,
+#favoritesGrid .track-info {
+  padding: 15px 3px 4px;
+}
+
+#trackGrid .track-info b,
+#favoritesGrid .track-info b {
+  color: #f7f2ff;
+  font-size: 14px;
+  line-height: 1.4;
+  letter-spacing: -.15px;
+}
+
+#trackGrid .track-info span,
+#favoritesGrid .track-info span {
+  color: #aaa6c4;
+  font-size: 11px;
+}
+
+#trackGrid .track-actions,
+#favoritesGrid .track-actions {
+  gap: 8px;
+  margin-top: 14px;
+}
+
+#trackGrid .track-actions button,
+#trackGrid .track-actions a,
+#favoritesGrid .track-actions button,
+#favoritesGrid .track-actions a {
+  min-height: 34px;
+  padding: 8px 11px;
+  border: 1px solid rgba(174, 148, 255, .22);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .045);
+  color: #d8d0ef;
+  font-size: 10px;
+  transition: background .2s ease, border-color .2s ease,
+              color .2s ease, transform .2s ease;
+}
+
+#trackGrid .track-actions button:hover,
+#trackGrid .track-actions a:hover,
+#favoritesGrid .track-actions button:hover,
+#favoritesGrid .track-actions a:hover {
+  transform: translateY(-2px);
+  border-color: rgba(184, 158, 255, .58);
+  background: rgba(139, 92, 246, .15);
+  color: #fff;
+}
+
+#trackGrid .empty-state,
+#favoritesGrid .muted-text {
+  border: 1px dashed rgba(174, 148, 255, .28);
+  border-radius: 20px;
+  background: linear-gradient(145deg, rgba(30, 25, 55, .55), rgba(12, 16, 31, .48));
+}
+
+#trackGrid .empty-state {
+  padding: 48px 22px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+#trackGrid .empty-icon {
+  color: #b69aff;
+  text-shadow: 0 0 24px rgba(167, 139, 250, .42);
+}
+
+#favoritesGrid .muted-text {
+  padding: 22px;
+  color: #aaa6c4;
+}
+
+@media (max-width: 850px) {
+  #trackGrid,
+  #favoritesGrid {
+    gap: 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  #trackGrid,
+  #favoritesGrid {
+    gap: 11px;
+  }
+
+  #trackGrid .track-card,
+  #favoritesGrid .track-card {
+    padding: 9px;
+    border-radius: 17px;
+  }
+
+  #trackGrid .cover,
+  #favoritesGrid .cover {
+    min-height: 0;
+    border-radius: 12px;
+  }
+
+  #trackGrid .track-info,
+  #favoritesGrid .track-info {
+    padding-top: 11px;
+  }
+
+  #trackGrid .track-info b,
+  #favoritesGrid .track-info b {
+    font-size: 12px;
+  }
+
+  #trackGrid .track-actions,
+  #favoritesGrid .track-actions {
+    gap: 6px;
+  }
+
+  #trackGrid .track-actions button,
+  #trackGrid .track-actions a,
+  #favoritesGrid .track-actions button,
+  #favoritesGrid .track-actions a {
+    padding: 7px 9px;
+    font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #trackGrid .track-card,
+  #favoritesGrid .track-card,
+  #trackGrid .cover img,
+  #favoritesGrid .cover img {
+    transition: none !important;
+  }
+}
