@@ -3383,3 +3383,28 @@ body.access-locked .nova-bottom-nav{display:none!important}
  .library-filters{display:grid;grid-template-columns:1fr 1fr}
  .library-filters select:last-child{grid-column:1/-1}
 }
+
+/* NOVA MUSIC 2.0 · perfiles de artista, likes y bitácora */
+.nova-artist-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.nova-artist-card{display:flex;align-items:center;gap:12px;min-width:0;text-align:left;padding:13px;border:1px solid var(--line);border-radius:15px;background:linear-gradient(145deg,#171d2a,#10141e);color:var(--text);transition:.22s}
+.nova-artist-card:hover{transform:translateY(-3px);border-color:#a78bfa77;box-shadow:0 12px 28px #0004}
+.nova-artist-avatar{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;overflow:hidden;flex:0 0 auto;background:linear-gradient(135deg,#a78bfa,#b9ff66);color:#10121a;font-weight:800}
+.nova-artist-avatar img{width:100%;height:100%;object-fit:cover}
+.nova-artist-meta{display:grid;gap:4px;min-width:0}
+.nova-artist-meta b{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nova-artist-meta small{font-size:10px;color:var(--muted)}
+.nova-artist-arrow{margin-left:auto;color:var(--purple)}
+.nova-artist-profile{display:flex;align-items:center;gap:15px;margin:4px 0 18px}
+.nova-profile-avatar{width:68px;height:68px;border-radius:50%;object-fit:cover;background:#202638}
+.nova-profile-initial{display:grid;place-items:center;font-size:28px;font-weight:800;color:#111;background:linear-gradient(135deg,#a78bfa,#b9ff66)}
+.nova-artist-profile h3{margin:0 0 5px}
+.nova-artist-profile p,.nova-artist-bio{color:var(--muted);font-size:12px;line-height:1.65}
+.nova-profile-songs{display:grid;gap:7px;margin:12px 0 18px}
+.nova-profile-song{display:flex;justify-content:space-between;gap:10px;border:1px solid var(--line);border-radius:10px;padding:11px;background:#ffffff05;color:var(--text);text-align:left;font-size:11px}
+.nova-profile-song small{color:var(--accent)}
+.nova-comment-like{margin-top:8px;border:1px solid var(--line);border-radius:20px;padding:5px 10px;background:#ffffff08;color:var(--muted);font-size:11px}
+.nova-comment-like.liked{color:#ff86b4;border-color:#ff86b455;background:#ff86b411}
+.nova-audit-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
+.nova-audit-row div{display:grid;gap:4px;min-width:0}
+.nova-audit-row b{font-size:11px}
+.nova-audit-row span,.nova-audit-row small{font-size:10px;color:var(--muted);overflow-wrap:anywhere}
