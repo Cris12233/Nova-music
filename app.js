@@ -151,12 +151,13 @@ function renderFavorites(){
     const index=tracks.indexOf(track);
     const cover=track.cover_url?`background-image:url(\'${escapeAttr(track.cover_url)}\')`:"";
     const subtitle=[track.artist||"Artista independiente",track.album].filter(Boolean).join(" · ");
-    return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${track.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${index}">▶</button></div><div class="track-info"><b>${escapeHtml(track.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(track.id)}">❤️ Quitar favorito</button><button data-play="${index}">▶ Escuchar</button><a href="${memberAudioUrl("download",track.id)}">↓ Descargar</a><button data-queue="${index}">＋ Cola</button></div></div></article>`;
+    return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${track.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${index}">▶</button></div><div class="track-info"><b>${escapeHtml(track.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(track.id)}">❤️ Quitar favorito</button><button data-play="${index}">▶ Escuchar</button><a href="#" data-download="${escapeAttr(track.id)}">↓ Descargar</a><button data-queue="${index}">＋ Cola</button></div></div></article>`;
   }).join("");
 
   grid.querySelectorAll("[data-play]").forEach(button=>button.onclick=()=>playTrack(Number(button.dataset.play)));
   grid.querySelectorAll("[data-queue]").forEach(button=>button.onclick=()=>addToQueue(Number(button.dataset.queue)));
   grid.querySelectorAll("[data-favorite]").forEach(button=>button.onclick=()=>toggleFavorite(button.dataset.favorite));
+  grid.querySelectorAll("[data-download]").forEach(button=>button.onclick=event=>{event.preventDefault();downloadTrack(button.dataset.download)});
 }
 function renderTracks(){
  const q=$("search").value.toLowerCase();
@@ -167,7 +168,7 @@ function renderTracks(){
   const subtitle=[t.artist||"Artista independiente",t.album].filter(Boolean).join(" · ");
   
 
-return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${t.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${idx}">▶</button></div><div class="track-info"><b>${escapeHtml(t.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(t.id)}">${favoriteTracks.includes(t.id)?"❤️":"🤍"} Favorito</button><button data-play="${idx}">▶ Escuchar</button><a href="${memberAudioUrl("download",t.id)}">↓ Descargar</a><button data-add="${idx}">＋ Playlist</button><button data-queue="${idx}">＋ Cola</button></div></div></article>`;
+return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${t.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${idx}">▶</button></div><div class="track-info"><b>${escapeHtml(t.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(t.id)}">${favoriteTracks.includes(t.id)?"❤️":"🤍"} Favorito</button><button data-play="${idx}">▶ Escuchar</button><a href="#" data-download="${escapeAttr(t.id)}">↓ Descargar</a><button data-add="${idx}">＋ Playlist</button><button data-queue="${idx}">＋ Cola</button></div></div></article>`;
 
   
  }).join(""):`<div class="empty-state"><div class="empty-icon">♫</div><h3>${tracks.length?"No encontramos esa canción":"Tu escenario está listo"}</h3><p>${tracks.length?"Prueba con otro nombre, artista o álbum.":"Las canciones que publiques aparecerán aquí."}</p></div>`;
@@ -177,13 +178,34 @@ return `<article class="track-card"><div class="cover" style="${cover}"><span cl
  document.querySelectorAll("[data-favorite]").forEach(b=>{
   b.onclick=()=>toggleFavorite(b.dataset.favorite);
 });
+ document.querySelectorAll("[data-download]").forEach(b=>{
+  b.onclick=event=>{event.preventDefault();downloadTrack(b.dataset.download)};
+});
 renderFavorites();
 }
 function escapeHtml(s=""){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function escapeAttr(s=""){return escapeHtml(s)}
-function memberAudioUrl(endpoint,id){
- const token=currentSession?.access_token||"";
- return `https://nova-mega-server.onrender.com/${endpoint}?id=${encodeURIComponent(id)}&access_token=${encodeURIComponent(token)}`;
+function memberAudioUrl(endpoint,id,ticket){
+ return `https://nova-mega-server.onrender.com/${endpoint}?id=${encodeURIComponent(id)}&ticket=${encodeURIComponent(ticket)}`;
+}
+async function requestPlaybackTicket(){
+ if(!currentSession?.access_token)throw new Error("Inicia sesión para reproducir o descargar.");
+ const response=await fetch("https://nova-mega-server.onrender.com/playback-ticket",{
+  method:"POST",
+  headers:{Authorization:`Bearer ${currentSession.access_token}`}
+ });
+ const result=await response.json();
+ if(!response.ok||!result.ticket)throw new Error(result.error||"No se pudo autorizar la reproducción.");
+ return result.ticket;
+}
+async function downloadTrack(id){
+ if(!memberApproved)return;
+ try{
+  const ticket=await requestPlaybackTicket();
+  window.location.assign(memberAudioUrl("download",id,ticket));
+ }catch(error){
+  toast(error.message||"No se pudo iniciar la descarga.");
+ }
 }
 function playTrack(i){
  if(!tracks[i])return;
@@ -194,8 +216,11 @@ function playTrack(i){
  const queuePosition=playQueue.findIndex(song=>song.id===t.id);
 queueIndex=queuePosition;
 
- audio.src=memberAudioUrl("stream",t.id);
- audio.play().catch(()=>toast("No se pudo reproducir el audio."));
+ requestPlaybackTicket().then(ticket=>{
+  if(currentIndex!==i||!memberApproved)return;
+  audio.src=memberAudioUrl("stream",t.id,ticket);
+  return audio.play();
+ }).catch(error=>toast(error.message||"No se pudo reproducir el audio."));
 
  $("nowTitle").textContent=t.title;
  $("nowArtist").textContent=t.artist||"Artista independiente";
