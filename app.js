@@ -50,6 +50,55 @@ audio.addEventListener("ended",()=>{
 let tracks = [], currentIndex = -1, playlists = JSON.parse(localStorage.getItem("nova_playlists") || "[]");
 let currentSession = null;
 let memberApproved = false;
+let novaDeviceHeartbeat = null;
+const NOVA_DEVICE_STORAGE_KEY = "nova_device_id";
+
+function getNovaDeviceId(){
+ let id=localStorage.getItem(NOVA_DEVICE_STORAGE_KEY);
+ if(!id){
+  if(crypto.randomUUID){
+   id=crypto.randomUUID();
+  }else{
+   const bytes=new Uint8Array(16);
+   crypto.getRandomValues(bytes);
+   bytes[6]=(bytes[6]&15)|64;
+   bytes[8]=(bytes[8]&63)|128;
+   const hex=Array.from(bytes,value=>value.toString(16).padStart(2,"0")).join("");
+   id=`${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+  }
+  localStorage.setItem(NOVA_DEVICE_STORAGE_KEY,id);
+ }
+ return id;
+}
+
+async function registerNovaDevice(session){
+ if(!supabase||!session)return {ok:false,message:"No se pudo verificar el dispositivo."};
+ const {data,error}=await supabase.rpc("nova_register_device",{
+  p_device_id:getNovaDeviceId(),
+  p_device_label:(navigator.userAgent||"Dispositivo").slice(0,120)
+ });
+ if(error)throw new Error("No se pudo comprobar el límite de dispositivos. Inténtalo de nuevo.");
+ if(!data?.ok){
+  if(data?.reason==="device_limit_exceeded"){
+   return {ok:false,message:"Se detectaron más de 2 dispositivos simultáneos. Tu cuenta quedó suspendida temporalmente y necesita la aprobación del administrador."};
+  }
+  if(data?.reason==="suspended"){
+   return {ok:false,message:"Tu cuenta está suspendida. Solicita al administrador que revise tu acceso."};
+  }
+  return {ok:false,message:"Tu cuenta todavía no está aprobada para entrar."};
+ }
+ if(novaDeviceHeartbeat)clearInterval(novaDeviceHeartbeat);
+ novaDeviceHeartbeat=setInterval(async()=>{
+  if(!currentSession||currentSession.user.id!==session.user.id)return;
+  const {data:alive,error:heartbeatError}=await supabase.rpc("nova_touch_device",{p_device_id:getNovaDeviceId()});
+  if(heartbeatError||alive!==true){
+   clearInterval(novaDeviceHeartbeat);
+   novaDeviceHeartbeat=null;
+   lockMemberArea("No se pudo renovar la sesión de este dispositivo. Vuelve a iniciar sesión.");
+  }
+ },60000);
+ return {ok:true};
+}
 let adminVerified = false;
 let activeTrackId = null;
 let trackedPlayId = null;
@@ -492,6 +541,7 @@ async function checkMegaStatus(session){
 }
 
 function lockMemberArea(message){
+ if(novaDeviceHeartbeat){clearInterval(novaDeviceHeartbeat);novaDeviceHeartbeat=null;}
  memberApproved=false;
  document.body.classList.add("access-locked");
  $("memberGate").classList.remove("hidden");
@@ -512,8 +562,10 @@ async function checkMemberAccess(session){
   lockMemberArea("Inicia sesión o solicita acceso para entrar a NOVA MUSIC.");
   return false;
  }
- $("memberGateMessage").textContent="Verificando tu acceso…";
+ $("memberGateMessage").textContent="Verificando tu dispositivo y tu acceso…";
  try{
+  const deviceCheck=await registerNovaDevice(session);
+  if(!deviceCheck.ok)throw new Error(deviceCheck.message);
   const response=await fetch("https://nova-mega-server.onrender.com/member-status",{
    headers:{Authorization:`Bearer ${session.access_token}`}
   });
@@ -558,15 +610,20 @@ function renderMemberDirectory(){
   const email=escapeHtml(member.email||"");
   const status=member.status;
   const statusLabel={pending:"Pendiente",approved:"Aprobado",rejected:"Rechazado",suspended:"Suspendido"}[status]||status;
+  const securityNote=member.suspension_reason==="device_limit_exceeded"?"Bloqueo automático: se detectaron más de 2 dispositivos.": "";
   const actions=status==="pending"
    ? '<button data-status="approved" class="member-approve">Aprobar</button><button data-status="rejected" class="member-reject">Rechazar</button>'
    : status==="approved"
      ? '<button data-status="suspended" class="member-suspend">Suspender</button>'
      : '<button data-status="approved" class="member-approve">Dar acceso</button>';
-  return `<div class="member-request-row"><div class="member-request-info"><b>${name}</b><span>${email}</span><small class="member-state state-${status}">${statusLabel}</small></div><div class="member-request-actions" data-user-id="${escapeAttr(member.user_id)}">${actions}</div></div>`;
+  const devicesButton=status==="suspended"?' <button data-member-devices="1" class="member-suspend">Ver dispositivos</button>':"";
+  return `<div class="member-request-row"><div class="member-request-info"><b>${name}</b><span>${email}</span><small class="member-state state-${status}">${statusLabel}</small>${securityNote?`<small>${securityNote}</small>`:""}<div class="member-device-details" data-device-details></div></div><div class="member-request-actions" data-user-id="${escapeAttr(member.user_id)}">${actions}${devicesButton}</div></div>`;
  }).join("");
- list.querySelectorAll(".member-request-actions button").forEach(button=>{
+ list.querySelectorAll(".member-request-actions button[data-status]").forEach(button=>{
   button.onclick=()=>updateMemberStatus(button.parentElement.dataset.userId,button.dataset.status);
+ });
+ list.querySelectorAll("[data-member-devices]").forEach(button=>{
+  button.onclick=()=>loadMemberDevices(button.parentElement.dataset.userId,button.closest(".member-request-row").querySelector("[data-device-details]"));
  });
 }
 
@@ -587,6 +644,24 @@ async function refreshMembers(session=currentSession){
  }catch(error){
   list.innerHTML=`<p class="message">${escapeHtml(error.message)}</p>`;
  }
+}
+
+async function loadMemberDevices(userId,target){
+ if(!currentSession||!target)return;
+ target.textContent="Consultando dispositivos…";
+ try{
+  const response=await fetch(`https://nova-mega-server.onrender.com/admin/members/${encodeURIComponent(userId)}/devices`,{
+   headers:{Authorization:`Bearer ${currentSession.access_token}`}
+  });
+  const result=await response.json();
+  if(!response.ok)throw new Error(result.error||"No se pudieron consultar los dispositivos");
+  const devices=result.devices||[];
+  target.innerHTML=devices.length?devices.map(device=>{
+   const label=escapeHtml(device.device_label||"Dispositivo sin identificar");
+   const lastSeen=new Date(device.last_seen).toLocaleString("es-MX");
+   return `<small>${label} · Última actividad: ${escapeHtml(lastSeen)}${device.revoked_at?" · Revocado":""}</small>`;
+  }).join(""):"<small>No hay dispositivos activos registrados.</small>";
+ }catch(error){target.textContent=error.message;}
 }
 
 async function updateMemberStatus(userId,status){
@@ -972,7 +1047,7 @@ lockMemberArea("Inicia sesión o solicita acceso para entrar a NOVA MUSIC.");
 if(supabase){
  supabase.auth.onAuthStateChange((_event,session)=>{
   showSession(session);
-  checkMemberAccess(session);
+  setTimeout(()=>{void checkMemberAccess(session);},0);
  });
  supabase.auth.getSession().then(({data})=>{
   if(data.session)checkMemberAccess(data.session);
