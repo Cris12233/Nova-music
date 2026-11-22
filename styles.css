@@ -3335,3 +3335,15 @@ body.access-locked .nova-bottom-nav{display:none!important}
 #communityContent label{margin-top:8px;color:#cfc5e2;font-size:12px}
 .track-actions [data-comments],.track-actions [data-report]{font-size:11px}
 @media(max-width:600px){.community-history-item,.community-notification,.community-report{align-items:flex-start;flex-direction:column}.community-history-item button,.community-notification button,.community-report button{width:100%}.community-stat-grid b{font-size:23px}.admin-insights{padding:12px}}
+
+/* NOVA MUSIC · Revisión de metadatos por archivo */
+.bulk-metadata-preview{margin:16px 0;padding:14px;border:1px solid rgba(157,117,255,.25);border-radius:16px;background:rgba(126,87,255,.055)}
+.bulk-metadata-heading{display:grid;gap:5px;margin-bottom:12px}
+.bulk-metadata-heading b{font-size:14px;color:#eee8ff}
+.bulk-metadata-heading span,.bulk-metadata-file small{font-size:12px;line-height:1.5;color:var(--muted,#a6a3b5)}
+.bulk-metadata-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 0;border-top:1px solid rgba(255,255,255,.08)}
+.bulk-metadata-file{grid-column:1/-1;display:grid;gap:3px;min-width:0}
+.bulk-metadata-file b{font-size:13px;overflow-wrap:anywhere}
+.bulk-metadata-row label{display:grid;gap:5px;font-size:11px;color:var(--muted,#a6a3b5)}
+.bulk-metadata-row input{width:100%;min-width:0;box-sizing:border-box}
+@media(max-width:480px){.bulk-metadata-row{grid-template-columns:1fr}.bulk-metadata-file{grid-column:auto}}
