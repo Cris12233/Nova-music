@@ -73,6 +73,10 @@ create trigger nova_create_pending_user_access
 after insert on auth.users
 for each row execute function public.create_pending_user_access();
 
+-- Las canciones existentes conservan is_published=true.
+alter table public.songs
+  add column if not exists is_published boolean not null default true;
+
 -- Restringir el catálogo: solo miembros aprobados y administradores.
 drop policy if exists "Public can read songs" on public.songs;
 drop policy if exists "Public can read published songs" on public.songs;
@@ -92,10 +96,6 @@ using (
     )
   )
 );
-
--- Las canciones existentes conservan is_published=true.
-alter table public.songs
-  add column if not exists is_published boolean not null default true;
 
 -- Asegurar que el cliente autenticado pueda consultar el catálogo sujeto a RLS.
 grant select on public.songs to authenticated;
