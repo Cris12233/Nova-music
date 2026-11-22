@@ -16,6 +16,24 @@ alter table public.user_access enable row level security;
 
 grant select, update on public.user_access to authenticated;
 
+-- Comprueba el rol admin sin depender de permisos/RLS directos sobre artist_admins.
+create or replace function public.is_nova_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $
+  select exists (
+    select 1
+    from public.artist_admins a
+    where a.user_id = auth.uid()
+  );
+$;
+
+revoke all on function public.is_nova_admin() from public;
+grant execute on function public.is_nova_admin() to authenticated;
+
 drop policy if exists "Users can read own access status" on public.user_access;
 create policy "Users can read own access status"
 on public.user_access for select to authenticated
@@ -25,10 +43,7 @@ drop policy if exists "Admins can read all access requests" on public.user_acces
 create policy "Admins can read all access requests"
 on public.user_access for select to authenticated
 using (
-  exists (
-    select 1 from public.artist_admins a
-    where a.user_id = auth.uid()
-  )
+  public.is_nova_admin()
 );
 
 drop policy if exists "Admins can update access requests" on public.user_access;
@@ -103,14 +118,12 @@ using (
       select 1 from public.user_access u
       where u.user_id = auth.uid() and u.status = 'approved'
     )
-    or exists (
-      select 1 from public.artist_admins a
-      where a.user_id = auth.uid()
-    )
+    or public.is_nova_admin()
   )
 );
 
--- Asegurar que el cliente autenticado pueda consultar el catálogo sujeto a RLS.
+-- Asegurar que solo sesiones autenticadas puedan consultar el catálogo.
+revoke select on public.songs from anon;
 grant select on public.songs to authenticated;
 
 -- El bucket de audio también queda privado por si existen archivos antiguos allí.
