@@ -62,8 +62,12 @@ function getNextQueueIndex(){
  if(!playQueue.length)return -1;
 
  if(shuffleQueue){
-  return Math.floor(Math.random()*playQueue.length);
- }
+   if(playQueue.length===1)return 0;
+   if(queueIndex<0)return Math.floor(Math.random()*playQueue.length);
+   let nextIndex=Math.floor(Math.random()*(playQueue.length-1));
+   if(nextIndex>=queueIndex)nextIndex++;
+   return nextIndex;
+  }
 
  return queueIndex+1;
 }
@@ -104,8 +108,11 @@ function renderQueue(){
 
  document.querySelectorAll("[data-remove-queue]").forEach(b=>{
   b.onclick=()=>{
-   playQueue.splice(Number(b.dataset.removeQueue),1);
-   renderQueue();
+   const removedIndex=Number(b.dataset.removeQueue);
+    playQueue.splice(removedIndex,1);
+    if(removedIndex<queueIndex)queueIndex--;
+    else if(removedIndex===queueIndex)queueIndex=-1;
+    renderQueue();
   };
  });
 }
@@ -125,10 +132,29 @@ function toggleFavorite(id){
   localStorage.setItem("nova_favorites",JSON.stringify(favoriteTracks));
   renderTracks();
 }
+function renderFavorites(){
+  const grid=$("favoritesGrid");
+  const count=$("favoriteCount");
+  if(!grid||!count)return;
 
-  localStorage.setItem("nova_favorites",JSON.stringify(favoriteTracks));
-  renderTracks();
+  const favorites=tracks.filter(track=>favoriteTracks.includes(track.id));
+  count.textContent=`${favorites.length} ${favorites.length===1?"canción":"canciones"}`;
 
+  if(!favorites.length){
+    grid.innerHTML='<p class="muted-text">Todavía no tienes canciones favoritas.</p>';
+    return;
+  }
+
+  grid.innerHTML=favorites.map(track=>{
+    const index=tracks.indexOf(track);
+    const cover=track.cover_url?`background-image:url(\'${escapeAttr(track.cover_url)}\')`:"";
+    const subtitle=[track.artist||"Artista independiente",track.album].filter(Boolean).join(" · ");
+    return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${track.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${index}">▶</button></div><div class="track-info"><b>${escapeHtml(track.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(track.id)}">❤️ Quitar favorito</button><button data-play="${index}">▶ Escuchar</button><a href="https://nova-mega-server.onrender.com/download?id=${encodeURIComponent(track.id)}">↓ Descargar</a><button data-queue="${index}">＋ Cola</button></div></div></article>`;
+  }).join("");
+
+  grid.querySelectorAll("[data-play]").forEach(button=>button.onclick=()=>playTrack(Number(button.dataset.play)));
+  grid.querySelectorAll("[data-queue]").forEach(button=>button.onclick=()=>addToQueue(Number(button.dataset.queue)));
+  grid.querySelectorAll("[data-favorite]").forEach(button=>button.onclick=()=>toggleFavorite(button.dataset.favorite));
 }
 function renderTracks(){
  const q=$("search").value.toLowerCase();
@@ -172,18 +198,24 @@ queueIndex=queuePosition;
  $("playBtn").textContent="Ⅱ";
 $("playBtn").onclick=()=>{if(!audio.src){if(tracks.length)playTrack(0);return}if(audio.paused){audio.play();$("playBtn").textContent="Ⅱ"}else{audio.pause();$("playBtn").textContent="▶"}};
 $("nextBtn").onclick=()=>{
- if(playQueue.length){
-  const nextIndex=queueIndex+1;
-  const song=playQueue[nextIndex]||playQueue[0];
-  const trackIndex=tracks.findIndex(t=>t.id===song.id);
+  if(playQueue.length){
+   let nextIndex=getNextQueueIndex();
 
-  if(trackIndex!==-1)playTrack(trackIndex);
-  return;
- }
+   if(nextIndex>=playQueue.length){
+    if(repeatQueue)nextIndex=0;
+    else return;
+   }
 
- if(tracks.length){
-  playTrack((currentIndex+1)%tracks.length);
- }
+   const song=playQueue[nextIndex];
+   if(!song)return;
+   const trackIndex=tracks.findIndex(t=>t.id===song.id);
+   if(trackIndex!==-1)playTrack(trackIndex);
+   return;
+  }
+
+  if(tracks.length){
+   playTrack((currentIndex+1)%tracks.length);
+  }
 };
 
 $("prevBtn").onclick=()=>{
