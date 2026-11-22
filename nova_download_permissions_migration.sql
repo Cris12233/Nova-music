@@ -4,7 +4,3 @@
 
 alter table public.user_access
   add column if not exists download_enabled boolean not null default false;
-
-update public.user_access
-   set download_enabled = false
- where download_enabled is null;
