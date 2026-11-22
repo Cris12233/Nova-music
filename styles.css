@@ -1877,3 +1877,25 @@ button {
     transition-duration: .01ms !important;
   }
 }
+
+
+/* NOVA MUSIC — Panel de administrador visible sobre la navegación móvil */
+#adminModal {
+  z-index: 1000;
+  padding: max(16px, env(safe-area-inset-top)) 16px
+           max(16px, env(safe-area-inset-bottom));
+}
+
+#adminModal .modal {
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 600px) {
+  #adminModal .modal:has(#uploadPanel:not(.hidden)) {
+    max-height: calc(100dvh - 32px);
+    width: min(520px, 100%);
+  }
+}
