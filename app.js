@@ -1038,7 +1038,7 @@ lockMemberArea("Inicia sesión o solicita acceso para entrar a NOVA MUSIC.");
 if(supabase){
  supabase.auth.onAuthStateChange((_event,session)=>{
   showSession(session);
-  checkMemberAccess(session);
+  setTimeout(()=>{void checkMemberAccess(session);},0);
  });
  supabase.auth.getSession().then(({data})=>{
   if(data.session)checkMemberAccess(data.session);
