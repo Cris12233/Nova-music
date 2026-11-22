@@ -3,8 +3,12 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 
 const configured = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("PEGA_AQUI") && SUPABASE_ANON_KEY.length > 30 && !SUPABASE_ANON_KEY.includes("PEGA_AQUI");
 const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storage: window.localStorage } }) : null;
+const NOVA_API_BASE = "https://nova-mega-server.onrender.com";
 const $ = id => document.getElementById(id);
 const audio = $("audio");
+audio.preload = "auto";
+// Despierta el servidor gratuito en segundo plano para reducir la espera al reproducir.
+fetch(`${NOVA_API_BASE}/health`, { cache: "no-store", keepalive: true }).catch(() => {});
 audio.addEventListener("ended",()=>{
  if(!playQueue.length){
   if(!tracks.length)return;
@@ -78,7 +82,12 @@ function time(s){if(!Number.isFinite(s))return "0:00";return `${Math.floor(s/60)
 function openModal(id){$(id).classList.add("open")}
 function closeModal(id){$(id).classList.remove("open")}
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
-$("adminOpen").onclick=async()=>{await refreshSession();openModal("adminModal")};
+let adminRefreshPromise = null;
+$("adminOpen").onclick=()=>{
+ openModal("adminModal");
+ if(adminRefreshPromise)return;
+ adminRefreshPromise=refreshSession().finally(()=>{adminRefreshPromise=null;});
+};
 $("newPlaylist").onclick=()=>openModal("playlistModal");
 function addToQueue(index){
  const song=tracks[index];
@@ -273,7 +282,7 @@ $("search").oninput=renderTracks;
 async function loadTracks(){
  if(!memberApproved)return;
  if(!supabase){$("trackGrid").innerHTML='<div class="empty-state"><div class="empty-icon">⚙</div><h3>Falta conectar Supabase</h3><p>Abre README.txt y sigue los pasos para activar tu biblioteca musical.</p></div>';return}
- const {data,error}=await supabase.from("songs").select("*").order("created_at",{ascending:false});
+ const {data,error}=await supabase.from("songs").select("id,title,artist,album,cover_url").order("created_at",{ascending:false});
  if(error){$("trackGrid").innerHTML=`<div class="empty-state"><h3>No se pudo cargar la biblioteca</h3><p>${escapeHtml(error.message)}</p></div>`;return}
  tracks=data||[];renderTracks();
 }
@@ -320,7 +329,7 @@ async function checkMegaStatus(session){
   $("authForm").classList.add("hidden");
   $("uploadPanel").classList.remove("hidden");
   $("adminMessage").textContent="¡MEGA conectado correctamente!";
-  await refreshMembers(session);
+  void refreshMembers(session);
   return true;
  }catch(error){
   $("uploadPanel").classList.add("hidden");
