@@ -3356,3 +3356,30 @@ body.access-locked .nova-bottom-nav{display:none!important}
   background:rgba(255,75,110,.08);
 }
 .track-actions .admin-delete-song:active{transform:scale(.97)}
+
+
+/* NOVA MUSIC 2.0 · filtros, descubrimiento y controles de escucha */
+.library-filters{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.library-filters select{max-width:190px;min-width:130px;border:1px solid var(--line);background:#111521;color:var(--text);border-radius:22px;padding:10px 13px;font-size:11px;outline:none}
+.library-filters select:focus{border-color:var(--purple);box-shadow:0 0 0 3px #a78bfa22}
+.nova-discover-section{margin-top:48px}
+.nova-discover-section .section-head>span{font-size:11px}
+.nova-visualizer{height:32px;display:flex;align-items:center;justify-content:center;gap:5px;margin:16px auto 22px;opacity:.45}
+.nova-visualizer i{display:block;width:4px;height:7px;border-radius:5px;background:linear-gradient(180deg,var(--accent),var(--purple));transform-origin:center;transition:height .2s}
+.nova-visualizer.is-playing{opacity:1}
+.nova-visualizer.is-playing i{animation:nova-eq .75s ease-in-out infinite alternate}
+.nova-visualizer.is-playing i:nth-child(2n){animation-delay:-.35s}
+.nova-visualizer.is-playing i:nth-child(3n){animation-delay:-.55s}
+@keyframes nova-eq{from{height:5px}to{height:29px}}
+#sleepTimerBtn{border:1px solid #a78bfa55;color:#d8caff;background:#a78bfa12;border-radius:20px;padding:9px 13px;font-size:11px}
+#sleepTimerBtn:active{transform:scale(.97)}
+@media(max-width:760px){
+ .library-filters{width:100%;justify-content:stretch}
+ .library-filters select{flex:1;min-width:0;max-width:none}
+ .section-head:has(.library-filters){align-items:stretch;flex-direction:column}
+ .nova-discover-section .section-head>span{align-self:flex-start}
+}
+@media(max-width:480px){
+ .library-filters{display:grid;grid-template-columns:1fr 1fr}
+ .library-filters select:last-child{grid-column:1/-1}
+}
