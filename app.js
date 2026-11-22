@@ -104,6 +104,9 @@ let activeTrackId = null;
 let trackedPlayId = null;
 let lastHistorySave = 0;
 let historyEntries = [];
+let artistProfiles = [];
+let notificationChannel = null;
+let notificationChannelUserId = null;
 let pendingResumeSeconds = 0;
 let sleepTimerTimeout = null;
 let sleepTimerMinutes = 0;
@@ -261,6 +264,51 @@ function renderRecommendations(){
  grid.querySelectorAll("[data-recommend-favorite]").forEach(button=>button.onclick=()=>toggleFavorite(button.dataset.recommendFavorite));
 }
 
+function artistProfileFor(name){
+ return artistProfiles.find(profile=>profile.artist_name.toLowerCase()===name.toLowerCase())||null;
+}
+function renderArtists(){
+ const grid=$("artistGrid");if(!grid)return;
+ const names=[...new Set(tracks.map(track=>(track.artist||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
+ if(!names.length){grid.innerHTML='<p class="muted-text">Todavía no hay artistas identificados en la colección.</p>';return;}
+ grid.innerHTML=names.map(name=>{
+  const profile=artistProfileFor(name),count=tracks.filter(track=>(track.artist||"").trim().toLowerCase()===name.toLowerCase()).length;
+  const avatar=profile?.avatar_url?'<img src="'+escapeAttr(profile.avatar_url)+'" alt="" loading="lazy">':'<span>'+escapeHtml(name.slice(0,1).toUpperCase())+'</span>';
+  return '<button class="nova-artist-card" type="button" data-artist-profile="'+escapeAttr(name)+'"><span class="nova-artist-avatar">'+avatar+'</span><span class="nova-artist-meta"><b>'+escapeHtml(name)+'</b><small>'+(profile?.genre?escapeHtml(profile.genre)+' · ':'')+count+' '+(count===1?'canción':'canciones')+'</small></span><span class="nova-artist-arrow">↗</span></button>';
+ }).join("");
+ grid.querySelectorAll("[data-artist-profile]").forEach(button=>button.onclick=()=>openArtistProfile(button.dataset.artistProfile));
+}
+async function loadArtistProfiles(){
+ if(!supabase||!memberApproved)return;
+ const {data,error}=await supabase.from("nova_artist_profiles").select("artist_name,bio,genre,avatar_url,updated_at");
+ if(error){console.warn("NOVA artist profiles:",error.message);artistProfiles=[];}
+ else artistProfiles=data||[];
+ renderArtists();
+}
+function openArtistProfile(name){
+ const profile=artistProfileFor(name),songs=tracks.filter(track=>(track.artist||"").trim().toLowerCase()===name.toLowerCase());
+ $("communityTitle").textContent=name;
+ const content=$("communityContent");
+ const avatar=profile?.avatar_url?'<img class="nova-profile-avatar" src="'+escapeAttr(profile.avatar_url)+'" alt="">':'<div class="nova-profile-avatar nova-profile-initial">'+escapeHtml(name.slice(0,1).toUpperCase())+'</div>';
+ content.innerHTML='<div class="nova-artist-profile">'+avatar+'<div><h3>'+escapeHtml(name)+'</h3><p>'+escapeHtml(profile?.genre||"Artista independiente")+'</p></div></div><p class="nova-artist-bio">'+escapeHtml(profile?.bio||"Este artista forma parte de la colección de música inédita de NOVA MUSIC.")+'</p><h4>En la colección</h4><div class="nova-profile-songs">'+songs.map(track=>'<button class="nova-profile-song" data-profile-play="'+tracks.indexOf(track)+'"><span>♫ '+escapeHtml(track.title)+'</span><small>▶ Escuchar</small></button>').join("")+'</div>'+(adminVerified?'<button id="editArtistProfile" class="outline-btn">Editar perfil de artista</button>':"");
+ content.querySelectorAll("[data-profile-play]").forEach(button=>button.onclick=()=>{closeModal("communityModal");playTrack(Number(button.dataset.profilePlay));});
+ if(adminVerified&&$("editArtistProfile"))$("editArtistProfile").onclick=()=>editArtistProfile(name,profile||{});
+ openModal("communityModal");
+}
+function editArtistProfile(name,profile){
+ const content=$("communityContent");
+ content.innerHTML='<h3>Editar perfil · '+escapeHtml(name)+'</h3><label>Biografía</label><textarea id="artistBioInput" maxlength="1200" rows="4">'+escapeHtml(profile.bio||"")+'</textarea><label>Género / estilo</label><input id="artistGenreInput" maxlength="80" value="'+escapeAttr(profile.genre||"")+'" placeholder="Ej. Corridos tumbados"><label>URL de imagen (opcional)</label><input id="artistAvatarInput" type="url" maxlength="1000" value="'+escapeAttr(profile.avatar_url||"")+'" placeholder="https://…"><button id="saveArtistProfile" class="primary-btn full">Guardar perfil</button><button id="cancelArtistProfile" class="text-btn">Cancelar</button>';
+ $("cancelArtistProfile").onclick=()=>openArtistProfile(name);
+ $("saveArtistProfile").onclick=async()=>{
+  const payload={artist_name:name,bio:$("artistBioInput").value.trim(),genre:$("artistGenreInput").value.trim(),avatar_url:$("artistAvatarInput").value.trim()||null,updated_by:currentSession.user.id,updated_at:new Date().toISOString()};
+  $("saveArtistProfile").disabled=true;
+  const {error}=await supabase.from("nova_artist_profiles").upsert(payload,{onConflict:"artist_name"});
+  $("saveArtistProfile").disabled=false;
+  if(error)return toast("No se pudo guardar el perfil: "+error.message);
+  await loadArtistProfiles();toast("Perfil de artista actualizado");openArtistProfile(name);
+ };
+}
+
 function renderTracks(){
  const q=$("search").value.toLowerCase();
  const artist=$("artistFilter")?.value||"",album=$("albumFilter")?.value||"",sort=$("sortFilter")?.value||"recent";
@@ -292,6 +340,7 @@ return `<article class="track-card"><div class="cover" style="${cover}"><span cl
  document.querySelectorAll("[data-delete-song]").forEach(b=>b.onclick=()=>deleteSong(b.dataset.deleteSong));
 renderFavorites();
  renderRecommendations();
+ renderArtists();
 }
 
 function memberDisplayName(){return currentSession?.user?.user_metadata?.display_name||currentSession?.user?.email?.split("@")[0]||"Miembro NOVA";}
@@ -320,14 +369,38 @@ function renderNotifications(items){
  list.innerHTML=items.map(item=>'<article class="community-notification '+(item.read_at?"read":"unread")+'"><div><b>'+escapeHtml(item.title)+'</b><p>'+escapeHtml(item.body||"Hay novedades en NOVA MUSIC.")+'</p><small>'+new Date(item.created_at).toLocaleString("es-MX")+'</small></div>'+(item.read_at?'':'<button class="text-btn" data-notification-read="'+escapeAttr(item.id)+'">Marcar leída</button>')+'</article>').join("");
  list.querySelectorAll("[data-notification-read]").forEach(button=>button.onclick=async()=>{const {error}=await supabase.from("nova_notifications").update({read_at:new Date().toISOString()}).eq("id",button.dataset.notificationRead).eq("user_id",currentSession.user.id);if(error)return toast("No se pudo actualizar la notificación.");void loadCommunityData();});
 }
+function ensureNotificationRealtime(){
+ if(!supabase||!currentSession||!memberApproved)return;
+ const userId=currentSession.user.id;
+ if(notificationChannelUserId===userId&&notificationChannel)return;
+ if(notificationChannel)supabase.removeChannel(notificationChannel);
+ notificationChannelUserId=userId;
+ notificationChannel=supabase.channel("nova-notifications-"+userId)
+  .on("postgres_changes",{event:"INSERT",schema:"public",table:"nova_notifications",filter:"user_id=eq."+userId},payload=>{
+   const item=payload.new;
+   if(item?.title)toast("Nueva notificación: "+item.title);
+   void loadCommunityData();
+  }).subscribe();
+}
+
 async function loadCommunityData(){
  if(!supabase||!memberApproved||!currentSession)return;
+ ensureNotificationRealtime();
  const [h,n]=await Promise.all([
   supabase.from("nova_listening_history").select("song_id,progress_seconds,updated_at,song:songs(id,title,artist,album,cover_url)").order("updated_at",{ascending:false}).limit(12),
   supabase.from("nova_notifications").select("id,title,body,created_at,read_at,song_id").order("created_at",{ascending:false}).limit(30)
  ]);
  if(h.error)console.warn("NOVA history:",h.error.message);else{historyEntries=h.data||[];renderHistory();renderRecommendations();}
  if(n.error)console.warn("NOVA notifications:",n.error.message);else renderNotifications(n.data||[]);
+}
+async function toggleCommentLike(commentId,liked,songId){
+ if(!currentSession||!memberApproved)return;
+ const request=liked
+  ? supabase.from("nova_comment_likes").delete().eq("comment_id",commentId).eq("user_id",currentSession.user.id)
+  : supabase.from("nova_comment_likes").insert({comment_id:commentId,user_id:currentSession.user.id});
+ const {error}=await request;
+ if(error)return toast("No se pudo actualizar el me gusta: "+error.message);
+ await openSongComments(songId);
 }
 async function openSongComments(songId){
  if(!memberApproved)return;
@@ -337,7 +410,17 @@ async function openSongComments(songId){
  const {data,error}=await supabase.from("nova_song_comments").select("id,display_name,body,created_at").eq("song_id",songId).order("created_at",{ascending:true}).limit(100);
  if(error){content.innerHTML='<p class="message">'+escapeHtml(error.message)+'</p>';return;}
  const rows=data||[];
- content.innerHTML='<div class="community-comment-list">'+(rows.length?rows.map(row=>'<article class="community-comment"><b>'+escapeHtml(row.display_name||"Miembro")+'</b><p>'+escapeHtml(row.body)+'</p><small>'+new Date(row.created_at).toLocaleString("es-MX")+'</small></article>').join(""):'<p class="muted-text">Sé el primero en comentar esta canción.</p>')+'</div><label for="communityCommentInput">Escribe un comentario</label><textarea id="communityCommentInput" maxlength="1000" rows="3" placeholder="Comparte tu opinión…"></textarea><button id="communityCommentSend" class="primary-btn full">Publicar comentario</button>';
+ let likes=[];
+ if(rows.length){
+  const result=await supabase.from("nova_comment_likes").select("comment_id,user_id").in("comment_id",rows.map(row=>row.id));
+  if(!result.error)likes=result.data||[];
+  else console.warn("NOVA comment likes:",result.error.message);
+ }
+ content.innerHTML='<div class="community-comment-list">'+(rows.length?rows.map(row=>{
+  const rowLikes=likes.filter(like=>like.comment_id===row.id),liked=rowLikes.some(like=>like.user_id===currentSession.user.id);
+  return '<article class="community-comment"><b>'+escapeHtml(row.display_name||"Miembro")+'</b><p>'+escapeHtml(row.body)+'</p><small>'+new Date(row.created_at).toLocaleString("es-MX")+'</small><button class="nova-comment-like '+(liked?'liked':'')+'" type="button" data-comment-like="'+escapeAttr(row.id)+'" data-liked="'+(liked?'1':'0')+'">'+(liked?'♥':'♡')+' '+rowLikes.length+'</button></article>';
+ }).join(""):'<p class="muted-text">Sé el primero en comentar esta canción.</p>')+'</div><label for="communityCommentInput">Escribe un comentario</label><textarea id="communityCommentInput" maxlength="1000" rows="3" placeholder="Comparte tu opinión…"></textarea><button id="communityCommentSend" class="primary-btn full">Publicar comentario</button>';
+ content.querySelectorAll("[data-comment-like]").forEach(button=>button.onclick=()=>toggleCommentLike(button.dataset.commentLike,button.dataset.liked==="1",songId));
  $("communityCommentSend").onclick=async()=>{const body=$("communityCommentInput").value.trim();if(!body)return toast("Escribe un comentario primero.");$("communityCommentSend").disabled=true;const {error:insertError}=await supabase.from("nova_song_comments").insert({song_id:songId,user_id:currentSession.user.id,display_name:memberDisplayName(),body});$("communityCommentSend").disabled=false;if(insertError)return toast(insertError.message||"No se pudo publicar.");toast("Comentario publicado");await openSongComments(songId);};
 }
 async function openSongReport(songId){
@@ -349,6 +432,23 @@ async function openSongReport(songId){
  openModal("communityModal");
  $("sendSongReport").onclick=async()=>{const reason=$("reportReason").value;const details=$("reportDetails").value.trim();$("sendSongReport").disabled=true;const {error}=await supabase.from("nova_song_reports").insert({song_id:songId,user_id:currentSession.user.id,reporter_name:memberDisplayName(),reason,details:details||null});$("sendSongReport").disabled=false;if(error)return toast(error.message||"No se pudo enviar el reporte.");closeModal("communityModal");toast("Reporte enviado. Gracias por avisarnos.");};
 }
+async function loadAdminAudit(session=currentSession){
+ const list=$("adminAuditList");if(!list||!session)return;
+ list.innerHTML='<p class="muted-text">Cargando actividad…</p>';
+ try{
+  const response=await fetch("https://nova-mega-server.onrender.com/admin/audit-log",{headers:{Authorization:"Bearer "+session.access_token}});
+  const result=await response.json();
+  if(!response.ok)throw new Error(result.error||"No se pudo consultar la bitácora.");
+  const entries=result.entries||[];
+  list.innerHTML=entries.length?entries.map(entry=>{
+   const details=entry.details||{},label={member_access_updated:"Acceso de miembro actualizado",song_deleted:"Canción enviada a la papelera",audio_uploaded_to_mega:"Archivo subido a MEGA"}[entry.action]||entry.action;
+   const target=details.title||details.name||entry.target_id||"—";
+   return '<article class="nova-audit-row"><div><b>'+escapeHtml(label)+'</b><span>'+escapeHtml(String(target))+'</span></div><small>'+new Date(entry.created_at).toLocaleString("es-MX")+'</small></article>';
+  }).join(""):'<p class="muted-text">Todavía no hay acciones registradas.</p>';
+ }catch(error){list.innerHTML='<p class="muted-text">'+escapeHtml(error.message)+'</p>';}
+}
+$("refreshAdminAudit")?.addEventListener("click",()=>void loadAdminAudit());
+
 async function loadAdminInsights(session=currentSession){
  if(!supabase||!session||!$("adminInsights"))return;
  const stats=$("adminStats"),reports=$("adminReportsList");stats.textContent="Cargando estadísticas…";reports.innerHTML='<p class="muted-text">Cargando reportes…</p>';
@@ -367,7 +467,8 @@ async function loadAdminInsights(session=currentSession){
  else{
   const rows=r.data||[];
   reports.innerHTML=rows.length?rows.map(x=>'<article class="community-report"><div><b>'+escapeHtml(x.song?.title||"Canción")+'</b><span>'+escapeHtml(x.reporter_name||"Miembro")+' · '+escapeHtml(x.reason)+'</span><p>'+escapeHtml(x.details||"Sin detalles adicionales")+'</p><small>'+(x.status==="resolved"?"Resuelto":"Pendiente")+' · '+new Date(x.created_at).toLocaleString("es-MX")+'</small></div>'+(x.status==="resolved"?'':'<button class="outline-btn" data-report-resolve="'+escapeAttr(x.id)+'">Resolver</button>')+'</article>').join(""):'<p class="muted-text">No hay reportes todavía.</p>';
-  reports.querySelectorAll("[data-report-resolve]").forEach(button=>button.onclick=async()=>{const {error}=await supabase.from("nova_song_reports").update({status:"resolved",resolved_at:new Date().toISOString()}).eq("id",button.dataset.reportResolve);if(error)return toast("No se pudo actualizar el reporte.");void loadAdminInsights(session);});
+  reports.querySelectorAll("[data-report-resolve]").forEach(button=>button.onclick=async()=>{const {error}=await supabase.from("nova_song_reports").update({status:"resolved",resolved_at:new Date().toISOString()}).eq("id",button.dataset.reportResolve);if(error)return toast("No se pudo actualizar el reporte.");void loadAdminInsights(session);
+  void loadAdminAudit(session);});
  }
 }
 $("refreshAdminInsights")?.addEventListener("click",()=>loadAdminInsights());
@@ -509,7 +610,7 @@ async function loadTracks(){
  if(!supabase){$("trackGrid").innerHTML='<div class="empty-state"><div class="empty-icon">⚙</div><h3>Falta conectar Supabase</h3><p>Abre README.txt y sigue los pasos para activar tu biblioteca musical.</p></div>';return}
  const {data,error}=await supabase.from("songs").select("id,title,artist,album,cover_url").order("created_at",{ascending:false});
  if(error){$("trackGrid").innerHTML=`<div class="empty-state"><h3>No se pudo cargar la biblioteca</h3><p>${escapeHtml(error.message)}</p></div>`;return}
- tracks=data||[];renderLibraryFilters();renderTracks();
+ tracks=data||[];renderLibraryFilters();renderTracks();void loadArtistProfiles();
  void loadCommunityData();
 }
 
@@ -583,6 +684,7 @@ async function checkMegaStatus(session){
 function lockMemberArea(message){
  if(novaDeviceHeartbeat){clearInterval(novaDeviceHeartbeat);novaDeviceHeartbeat=null;}
  memberApproved=false;
+ if(notificationChannel){supabase?.removeChannel(notificationChannel);notificationChannel=null;notificationChannelUserId=null;}
  document.body.classList.add("access-locked");
  $("memberGate").classList.remove("hidden");
  tracks=[];
