@@ -99,6 +99,33 @@ end $$;
 
 grant select, insert on public.nova_admin_audit_log to authenticated;
 
+
+-- Permite al administrador revocar un dispositivo individual sin expulsar los demás.
+create or replace function public.nova_admin_revoke_device(p_user_id uuid, p_device_id uuid)
+returns boolean
+language plpgsql
+security definer
+set search_path = pg_catalog, public, auth
+as $
+declare
+  affected integer;
+begin
+  if not public.is_nova_admin() then
+    raise exception 'not_authorized';
+  end if;
+  update public.nova_device_sessions
+     set revoked_at = now()
+   where user_id = p_user_id
+     and device_id = p_device_id
+     and revoked_at is null;
+  get diagnostics affected = row_count;
+  return affected > 0;
+end;
+$;
+
+revoke all on function public.nova_admin_revoke_device(uuid, uuid) from public, anon;
+grant execute on function public.nova_admin_revoke_device(uuid, uuid) to authenticated;
+
 -- Habilita notificaciones en tiempo real sin duplicar la tabla en la publicación.
 do $$
 begin
