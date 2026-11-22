@@ -532,6 +532,7 @@ async function checkMegaStatus(session){
 }
 
 function lockMemberArea(message){
+ if(novaDeviceHeartbeat){clearInterval(novaDeviceHeartbeat);novaDeviceHeartbeat=null;}
  memberApproved=false;
  document.body.classList.add("access-locked");
  $("memberGate").classList.remove("hidden");
