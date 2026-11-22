@@ -50,6 +50,46 @@ audio.addEventListener("ended",()=>{
 let tracks = [], currentIndex = -1, playlists = JSON.parse(localStorage.getItem("nova_playlists") || "[]");
 let currentSession = null;
 let memberApproved = false;
+let novaDeviceHeartbeat = null;
+const NOVA_DEVICE_STORAGE_KEY = "nova_device_id";
+
+function getNovaDeviceId(){
+ let id=localStorage.getItem(NOVA_DEVICE_STORAGE_KEY);
+ if(!id){
+  id=crypto.randomUUID();
+  localStorage.setItem(NOVA_DEVICE_STORAGE_KEY,id);
+ }
+ return id;
+}
+
+async function registerNovaDevice(session){
+ if(!supabase||!session)return {ok:false,message:"No se pudo verificar el dispositivo."};
+ const {data,error}=await supabase.rpc("nova_register_device",{
+  p_device_id:getNovaDeviceId(),
+  p_device_label:(navigator.userAgent||"Dispositivo").slice(0,120)
+ });
+ if(error)throw new Error("No se pudo comprobar el límite de dispositivos. Inténtalo de nuevo.");
+ if(!data?.ok){
+  if(data?.reason==="device_limit_exceeded"){
+   return {ok:false,message:"Se detectaron más de 2 dispositivos simultáneos. Tu cuenta quedó suspendida temporalmente y necesita la aprobación del administrador."};
+  }
+  if(data?.reason==="suspended"){
+   return {ok:false,message:"Tu cuenta está suspendida. Solicita al administrador que revise tu acceso."};
+  }
+  return {ok:false,message:"Tu cuenta todavía no está aprobada para entrar."};
+ }
+ if(novaDeviceHeartbeat)clearInterval(novaDeviceHeartbeat);
+ novaDeviceHeartbeat=setInterval(async()=>{
+  if(!currentSession||currentSession.user.id!==session.user.id)return;
+  const {data:alive,error:heartbeatError}=await supabase.rpc("nova_touch_device",{p_device_id:getNovaDeviceId()});
+  if(heartbeatError||alive!==true){
+   clearInterval(novaDeviceHeartbeat);
+   novaDeviceHeartbeat=null;
+   lockMemberArea("No se pudo renovar la sesión de este dispositivo. Vuelve a iniciar sesión.");
+  }
+ },60000);
+ return {ok:true};
+}
 let adminVerified = false;
 let activeTrackId = null;
 let trackedPlayId = null;
@@ -512,8 +552,10 @@ async function checkMemberAccess(session){
   lockMemberArea("Inicia sesión o solicita acceso para entrar a NOVA MUSIC.");
   return false;
  }
- $("memberGateMessage").textContent="Verificando tu acceso…";
+ $("memberGateMessage").textContent="Verificando tu dispositivo y tu acceso…";
  try{
+  const deviceCheck=await registerNovaDevice(session);
+  if(!deviceCheck.ok)throw new Error(deviceCheck.message);
   const response=await fetch("https://nova-mega-server.onrender.com/member-status",{
    headers:{Authorization:`Bearer ${session.access_token}`}
   });
