@@ -148,7 +148,7 @@ function renderFavorites(){
     const index=tracks.indexOf(track);
     const cover=track.cover_url?`background-image:url(\'${escapeAttr(track.cover_url)}\')`:"";
     const subtitle=[track.artist||"Artista independiente",track.album].filter(Boolean).join(" · ");
-    return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${track.cover_url?\'style="display:none"\':\'\'}>♫</span><button class="card-play" data-play="${index}">▶</button></div><div class="track-info"><b>${escapeHtml(track.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(track.id)}">❤️ Quitar favorito</button><button data-play="${index}">▶ Escuchar</button><a href="https://nova-mega-server.onrender.com/download?id=${encodeURIComponent(track.id)}">↓ Descargar</a><button data-queue="${index}">＋ Cola</button></div></div></article>`;
+    return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${track.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${index}">▶</button></div><div class="track-info"><b>${escapeHtml(track.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(track.id)}">❤️ Quitar favorito</button><button data-play="${index}">▶ Escuchar</button><a href="https://nova-mega-server.onrender.com/download?id=${encodeURIComponent(track.id)}">↓ Descargar</a><button data-queue="${index}">＋ Cola</button></div></div></article>`;
   }).join("");
 
   grid.querySelectorAll("[data-play]").forEach(button=>button.onclick=()=>playTrack(Number(button.dataset.play)));
