@@ -2885,3 +2885,32 @@ body.access-locked .nova-bottom-nav{display:none!important}
     max-height: calc(100dvh - 24px);
   }
 }
+
+
+/* NOVA MUSIC — render inmediato del panel de artista */
+#adminModal,
+#adminModal.open {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+#adminModal .modal {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  transition: none !important;
+  animation: none !important;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, .48), 0 0 14px rgba(149, 101, 255, .10) !important;
+}
+#adminModal .modal *,
+#adminModal .modal *::before,
+#adminModal .modal *::after {
+  animation: none !important;
+  transition: none !important;
+}
+@media (max-width: 600px) {
+  #adminModal .modal {
+    transform: none !important;
+    contain: layout paint style;
+  }
+}
