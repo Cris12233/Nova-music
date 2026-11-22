@@ -3420,3 +3420,9 @@ body.access-locked .nova-bottom-nav{display:none!important}
 .nova-device-row small{font-size:10px;color:var(--muted);overflow-wrap:anywhere}
 .nova-revoke-device{flex:0 0 auto;border:1px solid #ff7f9455;color:#ff9bad;background:#ff7f9410;border-radius:16px;padding:5px 9px;font-size:10px}
 .nova-revoke-device:disabled{opacity:.5}
+
+.nova-login-event{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.nova-login-event>div{display:grid;gap:4px;min-width:0}
+.nova-login-event b{font-size:11px;overflow-wrap:anywhere}
+.nova-login-event span,.nova-login-event small{font-size:10px;color:var(--muted);overflow-wrap:anywhere}
+.nova-login-event em{font-size:9px;color:#ffb56b;font-style:normal;font-weight:700}
