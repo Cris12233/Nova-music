@@ -346,8 +346,7 @@ $("nextBtn").onclick=()=>{
   }
 
   if(tracks.length){
-   playTrack((currentIndex+1)%tracks.length);  }};
-$("prevBtn").onclick=()=>{
+   playTrack((currentIndex+1)%tracks.length);  }};$("prevBtn").onclick=()=>{
  if(playQueue.length&&queueIndex!==-1){
   const prevIndex=queueIndex>0?queueIndex-1:playQueue.length-1;
   const song=playQueue[prevIndex];
@@ -695,11 +694,10 @@ async function prepareBulkMetadata(){
  rows.innerHTML='<p class="muted-text">Leyendo etiquetas de las canciones…</p>';
  const next=new Map();
  const entries=await Promise.all(batch.map(async item=>{
-  const supported=/\\.mp3$/i.test(item.file.name);  const tags=supported?await readAudioMetadata(item.file):{};
-  return {item,tags}; }));
- if(request!==bulkMetadataRequest)return;
+  const supported=/\.mp3$/i.test(item.file.name);
+  const tags=supported?await readAudioMetadata(item.file):{};
+  return {item,tags}; })); if(request!==bulkMetadataRequest)return;
  for(const {item,tags} of entries){
-  const fallbackAlbum=$("bulkAlbum").value.trim()||folderAlbumForItem(item);
   next.set(item.file,{
    title:tags.title||titleFromFile(item.file.name),
    artist:tags.artist||"",
