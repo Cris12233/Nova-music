@@ -92,6 +92,25 @@ alter table public.songs
 drop policy if exists "Public can read songs" on public.songs;
 drop policy if exists "Public can read published songs" on public.songs;
 drop policy if exists "Approved members and admins can read published songs" on public.songs;
+
+-- Retira cualquier otra política SELECT pública/anon que pudiera seguir abriendo el catálogo.
+do $migration$
+declare
+  existing_policy record;
+begin
+  for existing_policy in
+    select policyname
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'songs'
+      and cmd = 'SELECT'
+      and ('public' = any(roles) or 'anon' = any(roles))
+  loop
+    execute format('drop policy %I on public.songs', existing_policy.policyname);
+  end loop;
+end;
+$migration$;
+
 create policy "Approved members and admins can read published songs"
 on public.songs for select to authenticated
 using (
@@ -106,6 +125,7 @@ using (
 );
 
 -- Asegurar que solo sesiones autenticadas puedan consultar el catálogo.
+revoke select on public.songs from public;
 revoke select on public.songs from anon;
 grant select on public.songs to authenticated;
 
