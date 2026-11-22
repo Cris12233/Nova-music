@@ -60,3 +60,7 @@ IMPORTANTE
 - Las cuentas existentes que no sean administradoras quedan pendientes para que el administrador decida su acceso.
 - Si Supabase requiere confirmar el correo, la persona deberá confirmar su dirección antes de iniciar sesión.
 - El acceso del administrador sigue dependiendo de ADMIN_EMAIL en Render y de su autorización existente en artist_admins para las operaciones de catálogo.
+
+
+- El acceso desde NOVA MUSIC y el servidor queda protegido. Los enlaces MEGA públicos que alguien ya tenga guardados o haya compartido fuera de NOVA no se revocan con esta migración; para privatizarlos habría que migrar/revocar los enlaces existentes por separado, sin hacerlo automáticamente.
+- Las URLs de reproducción de NOVA usan tickets temporales opacos; no exponen el token de sesión de Supabase.
