@@ -117,6 +117,12 @@
         <p class="muted-text">Escucha y guarda canciones para recibir recomendaciones.</p>
       </div>
     </section>
+    <section class="playlist-section nova-artist-section" id="artistSection">
+      <div class="section-head compact">
+        <div><p class="eyebrow">QUIÉNES ESTÁN DETRÁS DEL SONIDO</p><h2>Artistas</h2></div>
+      </div>
+      <div id="artistGrid" class="nova-artist-grid"><p class="muted-text">Los artistas de la colección aparecerán aquí.</p></div>
+    </section>
     <section class="playlist-section" id="favoritesSection">
   <div class="section-head compact">
     <div>
@@ -223,6 +229,14 @@
           <div id="memberRequestsList"><p class="muted-text">Cargando usuarios…</p></div>
         </div>
         <section id="adminInsights" class="admin-insights"><div class="member-requests-head"><div><b>Estadísticas y reportes</b><span>Reproducciones, descargas y problemas enviados por miembros.</span></div><button id="refreshAdminInsights" class="outline-btn" type="button">Actualizar</button></div><div id="adminStats"><p class="muted-text">Cargando estadísticas…</p></div><h3>Reportes de canciones</h3><div id="adminReportsList"><p class="muted-text">Cargando reportes…</p></div></section>
+        <section id="adminAuditSection" class="admin-insights">
+          <div class="member-requests-head"><div><b>Bitácora de seguridad</b><span>Acciones administrativas recientes.</span></div><button id="refreshAdminAudit" class="outline-btn" type="button">Actualizar</button></div>
+          <div id="adminAuditList"><p class="muted-text">Cargando actividad…</p></div>
+        </section>
+        <section id="adminLoginHistorySection" class="admin-insights">
+          <div class="member-requests-head"><div><b>Historial de inicios de sesión</b><span>Últimos accesos verificados de los miembros.</span></div><button id="refreshAdminLoginHistory" class="outline-btn" type="button">Actualizar</button></div>
+          <div id="adminLoginHistoryList"><p class="muted-text">Cargando accesos…</p></div>
+        </section>
         <div class="bulk-intro"><b>Subida masiva</b><span>Agrega canciones sueltas o un álbum completo en una sola operación.</span></div>
         <label>Opción 1 · Seleccionar canciones</label>
         <input id="bulkFiles" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" multiple>
