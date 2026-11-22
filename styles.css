@@ -3347,3 +3347,12 @@ body.access-locked .nova-bottom-nav{display:none!important}
 .bulk-metadata-row label{display:grid;gap:5px;font-size:11px;color:var(--muted,#a6a3b5)}
 .bulk-metadata-row input{width:100%;min-width:0;box-sizing:border-box}
 @media(max-width:480px){.bulk-metadata-row{grid-template-columns:1fr}.bulk-metadata-file{grid-column:auto}}
+
+
+/* NOVA MUSIC · Acción de eliminación exclusiva del administrador */
+.track-actions .admin-delete-song{
+  border:1px solid rgba(255,105,135,.28);
+  color:#ff9bad;
+  background:rgba(255,75,110,.08);
+}
+.track-actions .admin-delete-song:active{transform:scale(.97)}
