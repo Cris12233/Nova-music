@@ -453,7 +453,7 @@ async function loadAdminInsights(session=currentSession){
  if(!supabase||!session||!$("adminInsights"))return;
  const stats=$("adminStats"),reports=$("adminReportsList");stats.textContent="Cargando estadísticas…";reports.innerHTML='<p class="muted-text">Cargando reportes…</p>';
  const [e,r]=await Promise.all([
-  supabase.from("nova_song_events").select("event_type,song_id,song:songs(title,artist)").order("created_at",{ascending:false}).limit(5000),
+  supabase.from("nova_song_events").select("event_type,song_id,user_id,created_at,song:songs(title,artist)").order("created_at",{ascending:false}).limit(5000),
   supabase.from("nova_song_reports").select("id,song_id,reporter_name,reason,details,status,created_at,song:songs(title,artist)").order("created_at",{ascending:false}).limit(100)
  ]);
  if(e.error)stats.textContent="No se pudieron cargar las estadísticas: "+e.error.message;
@@ -461,14 +461,21 @@ async function loadAdminInsights(session=currentSession){
   const events=e.data||[],plays=events.filter(x=>x.event_type==="play").length,downloads=events.filter(x=>x.event_type==="download").length,topMap={};
   events.filter(x=>x.event_type==="play").forEach(x=>{if(!topMap[x.song_id])topMap[x.song_id]={count:0,title:x.song?.title||"Canción"};topMap[x.song_id].count++;});
   const top=Object.values(topMap).sort((x,y)=>y.count-x.count).slice(0,5);
-  stats.innerHTML='<div class="community-stat-grid"><div><b>'+plays+'</b><span>Reproducciones</span></div><div><b>'+downloads+'</b><span>Descargas</span></div></div><h4>Más escuchadas</h4>'+(top.length?top.map((x,i)=>'<p class="community-top-song"><b>'+(i+1)+'. '+escapeHtml(x.title)+'</b><span>'+x.count+' reproducciones</span></p>').join(""):'<p class="muted-text">Aún no hay reproducciones registradas.</p>')+'<small>Hasta 5,000 eventos recientes.</small>';
+  const activeSince=Date.now()-30*24*60*60*1000;
+  const activeMembers=new Set(events.filter(x=>x.user_id&&new Date(x.created_at).getTime()>=activeSince).map(x=>x.user_id)).size;
+  const days=Array.from({length:7},(_,i)=>{
+   const date=new Date();date.setHours(0,0,0,0);date.setDate(date.getDate()-(6-i));
+   const key=date.toISOString().slice(0,10);
+   return {key,label:date.toLocaleDateString("es-MX",{weekday:"short"}),count:events.filter(x=>x.event_type==="play"&&String(x.created_at||"").slice(0,10)===key).length};
+  });
+  const max=Math.max(1,...days.map(day=>day.count));
+  stats.innerHTML='<div class="community-stat-grid"><div><b>'+plays+'</b><span>Reproducciones</span></div><div><b>'+downloads+'</b><span>Descargas</span></div><div><b>'+activeMembers+'</b><span>Miembros activos · muestra 30 días</span></div></div><h4>Reproducciones por día</h4><div class="nova-analytics-chart">'+days.map(day=>'<div class="nova-analytics-day"><span>'+day.count+'</span><div><i style="height:'+Math.max(4,Math.round(day.count/max*100))+'%"></i></div><small>'+escapeHtml(day.label)+'</small></div>').join("")+'</div><h4>Más escuchadas</h4>'+(top.length?top.map((x,i)=>'<p class="community-top-song"><b>'+(i+1)+'. '+escapeHtml(x.title)+'</b><span>'+x.count+' reproducciones</span></p>').join(""):'<p class="muted-text">Aún no hay reproducciones registradas.</p>')+'<small>Datos de hasta 5,000 eventos recientes; las cifras son una muestra, no un conteo histórico ilimitado.</small>';
  }
  if(r.error)reports.innerHTML='<p class="message">'+escapeHtml(r.error.message)+'</p>';
  else{
   const rows=r.data||[];
   reports.innerHTML=rows.length?rows.map(x=>'<article class="community-report"><div><b>'+escapeHtml(x.song?.title||"Canción")+'</b><span>'+escapeHtml(x.reporter_name||"Miembro")+' · '+escapeHtml(x.reason)+'</span><p>'+escapeHtml(x.details||"Sin detalles adicionales")+'</p><small>'+(x.status==="resolved"?"Resuelto":"Pendiente")+' · '+new Date(x.created_at).toLocaleString("es-MX")+'</small></div>'+(x.status==="resolved"?'':'<button class="outline-btn" data-report-resolve="'+escapeAttr(x.id)+'">Resolver</button>')+'</article>').join(""):'<p class="muted-text">No hay reportes todavía.</p>';
-  reports.querySelectorAll("[data-report-resolve]").forEach(button=>button.onclick=async()=>{const {error}=await supabase.from("nova_song_reports").update({status:"resolved",resolved_at:new Date().toISOString()}).eq("id",button.dataset.reportResolve);if(error)return toast("No se pudo actualizar el reporte.");void loadAdminInsights(session);
-  void loadAdminAudit(session);});
+  reports.querySelectorAll("[data-report-resolve]").forEach(button=>button.onclick=async()=>{const {error}=await supabase.from("nova_song_reports").update({status:"resolved",resolved_at:new Date().toISOString()}).eq("id",button.dataset.reportResolve);if(error)return toast("No se pudo actualizar el reporte.");void loadAdminInsights(session);});
  }
 }
 $("refreshAdminInsights")?.addEventListener("click",()=>loadAdminInsights());
