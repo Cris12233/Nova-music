@@ -1877,3 +1877,11 @@ button {
     transition-duration: .01ms !important;
   }
 }
+/* NOVA MUSIC — Fondo premium */
+body {
+  background:
+    radial-gradient(ellipse at 15% 10%, rgba(0, 225, 255, 0.12), transparent 35%),
+    radial-gradient(ellipse at 85% 30%, rgba(145, 0, 255, 0.13), transparent 40%),
+    #080912;
+  color: #f5f7ff;
+}
