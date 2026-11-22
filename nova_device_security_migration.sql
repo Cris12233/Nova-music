@@ -2,6 +2,8 @@
 -- Ejecutar una sola vez en Supabase SQL Editor después de revisar el PR.
 -- No modifica canciones, archivos MEGA ni datos históricos.
 
+alter table public.user_access add column if not exists suspension_reason text;
+
 create table if not exists public.nova_device_sessions (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -51,7 +53,7 @@ begin
   end if;
 
   if exists (
-    select 1 from public.artist_admins a where a.user_id = v_user_id
+    select 1 where public.is_nova_admin()
   ) then
     return jsonb_build_object('ok', true, 'admin', true, 'active_devices', 0);
   end if;
@@ -90,7 +92,7 @@ begin
 
     if v_count >= 2 then
       update public.user_access
-      set status = 'suspended', updated_at = now()
+      set status = 'suspended', suspension_reason = 'device_limit_exceeded', updated_at = now()
       where user_id = v_user_id;
 
       return jsonb_build_object(
