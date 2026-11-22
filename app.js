@@ -346,8 +346,7 @@ $("nextBtn").onclick=()=>{
   }
 
   if(tracks.length){
-   playTrack((currentIndex+1)%tracks.length);
-  }};
+   playTrack((currentIndex+1)%tracks.length);  }};
 
 $("prevBtn").onclick=()=>{
  if(playQueue.length&&queueIndex!==-1){
@@ -663,6 +662,7 @@ function selectedBatch(){
 
 let bulkMetadataByFile = new Map();
 let bulkMetadataRequest = 0;
+let bulkMetadataFiles = [];
 
 function folderAlbumForItem(item){
  const parts=item.relativePath.split("/").filter(Boolean);
@@ -688,16 +688,17 @@ async function prepareBulkMetadata(){
   preview.classList.add("hidden");
   rows.innerHTML="";
   bulkMetadataByFile=new Map();
+  bulkMetadataFiles=[];
   return;
  }
+ if(batch.length===bulkMetadataFiles.length&&batch.every((item,index)=>item.file===bulkMetadataFiles[index]))return;
  preview.classList.remove("hidden");
  rows.innerHTML='<p class="muted-text">Leyendo etiquetas de las canciones…</p>';
  const next=new Map();
  const entries=await Promise.all(batch.map(async item=>{
   const supported=/\\.mp3$/i.test(item.file.name);
   const tags=supported?await readAudioMetadata(item.file):{};
-  return {item,tags};
- }));
+  return {item,tags}; }));
  if(request!==bulkMetadataRequest)return;
  for(const {item,tags} of entries){
   const fallbackAlbum=$("bulkAlbum").value.trim()||folderAlbumForItem(item);
@@ -708,6 +709,7 @@ async function prepareBulkMetadata(){
   });
  }
  bulkMetadataByFile=next;
+ bulkMetadataFiles=batch.map(item=>item.file);
  rows.innerHTML=batch.map((item,index)=>{
   const meta=metadataForItem(item);
   const hasTags=!!(meta.artist||meta.album||meta.title!==titleFromFile(item.file.name));
@@ -1098,17 +1100,3 @@ $("fullShuffle").onclick=()=>{
 
 $("fullRepeat").onclick=()=>{
   $("repeatBtn").click();
-};
-
-$("fullSeek").oninput=()=>{
-  if(audio.duration){
-    audio.currentTime=Number($("fullSeek").value)/100*audio.duration;
-  }
-};
-
-audio.addEventListener("timeupdate",()=>{
-  $("fullSeek").value=audio.duration?audio.currentTime/audio.duration*100:0;
-  $("fullCurrentTime").textContent=time(audio.currentTime);
-  $("fullDuration").textContent=time(audio.duration);
-  $("fullPlay").textContent=audio.paused?"▶":"Ⅱ";
-});
