@@ -62,7 +62,8 @@ function getNextQueueIndex(){
  if(!playQueue.length)return -1;
 
  if(shuffleQueue){
-   if(playQueue.length<2)return queueIndex;
+   if(playQueue.length===1)return 0;
+   if(queueIndex<0)return Math.floor(Math.random()*playQueue.length);
    let nextIndex=Math.floor(Math.random()*(playQueue.length-1));
    if(nextIndex>=queueIndex)nextIndex++;
    return nextIndex;
