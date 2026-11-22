@@ -765,7 +765,7 @@ function renderMemberDirectory(){
    : status==="approved"
      ? '<button data-status="suspended" class="member-suspend">Suspender</button>'
      : '<button data-status="approved" class="member-approve">Dar acceso</button>';
-  const devicesButton=status==="suspended"?' <button data-member-devices="1" class="member-suspend">Ver dispositivos</button>':"";
+  const devicesButton=(status==="approved"||status==="suspended")?' <button data-member-devices="1" class="member-suspend">Ver dispositivos</button>':"";
   return `<div class="member-request-row"><div class="member-request-info"><b>${name}</b><span>${email}</span><small class="member-state state-${status}">${statusLabel}</small>${securityNote?`<small>${securityNote}</small>`:""}<div class="member-device-details" data-device-details></div></div><div class="member-request-actions" data-user-id="${escapeAttr(member.user_id)}">${actions}${devicesButton}</div></div>`;
  }).join("");
  list.querySelectorAll(".member-request-actions button[data-status]").forEach(button=>{
