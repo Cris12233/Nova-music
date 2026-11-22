@@ -347,7 +347,6 @@ $("nextBtn").onclick=()=>{
 
   if(tracks.length){
    playTrack((currentIndex+1)%tracks.length);  }};
-
 $("prevBtn").onclick=()=>{
  if(playQueue.length&&queueIndex!==-1){
   const prevIndex=queueIndex>0?queueIndex-1:playQueue.length-1;
@@ -673,8 +672,8 @@ function metadataForItem(item){
  const saved=bulkMetadataByFile.get(item.file)||{};
  return {
   title:saved.title||titleFromFile(item.file.name),
-  artist:saved.artist||$("bulkArtist").value.trim()||"Artista independiente",
-  album:saved.album||$("bulkAlbum").value.trim()||folderAlbumForItem(item)||null
+  artist:saved.artistEdited?saved.artist:(saved.artist||$("bulkArtist").value.trim()||"Artista independiente"),
+  album:saved.albumEdited?saved.album:($("bulkAlbum").value.trim()||saved.album||folderAlbumForItem(item)||null)
  };
 }
 
@@ -696,16 +695,15 @@ async function prepareBulkMetadata(){
  rows.innerHTML='<p class="muted-text">Leyendo etiquetas de las canciones…</p>';
  const next=new Map();
  const entries=await Promise.all(batch.map(async item=>{
-  const supported=/\\.mp3$/i.test(item.file.name);
-  const tags=supported?await readAudioMetadata(item.file):{};
+  const supported=/\\.mp3$/i.test(item.file.name);  const tags=supported?await readAudioMetadata(item.file):{};
   return {item,tags}; }));
  if(request!==bulkMetadataRequest)return;
  for(const {item,tags} of entries){
   const fallbackAlbum=$("bulkAlbum").value.trim()||folderAlbumForItem(item);
   next.set(item.file,{
    title:tags.title||titleFromFile(item.file.name),
-   artist:tags.artist||$("bulkArtist").value.trim(),
-   album:$("bulkAlbum").value.trim()||tags.album||fallbackAlbum
+   artist:tags.artist||"",
+   album:tags.album||""
   });
  }
  bulkMetadataByFile=next;
@@ -726,6 +724,7 @@ async function prepareBulkMetadata(){
    if(!item)return;
    const saved=bulkMetadataByFile.get(item.file)||{};
    saved[input.dataset.metaField]=input.value.trim();
+   saved[input.dataset.metaField+"Edited"]=true;
    bulkMetadataByFile.set(item.file,saved);
   });
  });
@@ -793,7 +792,7 @@ $("bulkUploadBtn").onclick=async()=>{
 
  for(const item of valid){
   const metadata=metadataForItem(item);
-  const key=normalize(metadata.title)+"|"+normalize(metadata.artist);
+  const key=normalize(metadata.title)+"|"+normalize(metadata.artist||"Artista independiente");
 
   if(seen.has(key)){
    duplicates++;
@@ -873,7 +872,7 @@ $("bulkUploadBtn").onclick=async()=>{
 
    const {error}=await supabase.from("songs").insert({
     title:metadata.title,
-    artist:metadata.artist,
+    artist:metadata.artist||"Artista independiente",
     album,
     audio_url:audioUrl,
     audio_path:audioPath,
@@ -1003,7 +1002,7 @@ async function updateBulkPrecheck(){
 
  for(const item of eligible){
   const metadata=metadataForItem(item);
-  const key=normalizeNOVA(metadata.title)+"|"+normalizeNOVA(metadata.artist);
+  const key=normalizeNOVA(metadata.title)+"|"+normalizeNOVA(metadata.artist||"Artista independiente");
 
   if(seen.has(key)){
    duplicates++;
@@ -1097,6 +1096,3 @@ $("fullNext").onclick=()=>{
 $("fullShuffle").onclick=()=>{
   $("shuffleBtn").click();
 };
-
-$("fullRepeat").onclick=()=>{
-  $("repeatBtn").click();
