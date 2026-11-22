@@ -34,3 +34,29 @@ NOTAS
 - La carga necesita que mantengas la página abierta hasta terminar.
 - Las canciones publicadas son públicas y descargables, como se configuró originalmente.
 - Las playlists siguen guardándose localmente en el navegador del visitante.
+
+
+NUEVO — ACCESO POR MEMBRESÍA APROBADA
+- La biblioteca no se consulta hasta iniciar sesión con una cuenta aprobada.
+- Las solicitudes nuevas se crean automáticamente como pendientes.
+- El administrador puede aprobar, rechazar o suspender cuentas desde el panel de artista.
+- El servidor también exige una sesión aprobada para reproducir o descargar; ocultar la interfaz no es la única protección.
+
+ANTES DE ACTIVAR ESTA FUNCIÓN
+1. Ejecuta approved_members_migration.sql UNA SOLA VEZ en Supabase > SQL Editor.
+2. La migración crea user_access, registra automáticamente solicitudes nuevas y restringe la lectura de songs a usuarios aprobados y administradores.
+3. Comprueba que la cuenta administradora siga registrada en public.artist_admins. Esa tabla ya se utiliza para autorizar las subidas.
+4. Publica el frontend y despliega el backend actualizado en Render al mismo tiempo. Si solo actualizas uno, el acceso puede fallar.
+5. No agregues claves service_role ni secretos al frontend. El backend utiliza las variables que ya existen en Render.
+
+ESTADOS DE CUENTA
+- pending: solicitud recibida, sin acceso a canciones.
+- approved: acceso a la biblioteca, reproducción y descarga.
+- rejected: acceso denegado.
+- suspended: acceso retirado por el administrador.
+
+IMPORTANTE
+- La migración no borra canciones ni modifica los enlaces MEGA.
+- Las cuentas existentes que no sean administradoras quedan pendientes para que el administrador decida su acceso.
+- Si Supabase requiere confirmar el correo, la persona deberá confirmar su dirección antes de iniciar sesión.
+- El acceso del administrador sigue dependiendo de ADMIN_EMAIL en Render y de su autorización existente en artist_admins para las operaciones de catálogo.
