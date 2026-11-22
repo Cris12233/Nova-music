@@ -346,7 +346,12 @@ $("nextBtn").onclick=()=>{
   }
 
   if(tracks.length){
-   playTrack((currentIndex+1)%tracks.length);  }};$("prevBtn").onclick=()=>{ if(playQueue.length&&queueIndex!==-1){
+   playTrack((currentIndex+1)%tracks.length);
+  }
+};
+
+$("prevBtn").onclick=()=>{
+ if(playQueue.length&&queueIndex!==-1){
   const prevIndex=queueIndex>0?queueIndex-1:playQueue.length-1;
   const song=playQueue[prevIndex];
   const trackIndex=tracks.findIndex(t=>t.id===song.id);
@@ -695,7 +700,10 @@ async function prepareBulkMetadata(){
  const entries=await Promise.all(batch.map(async item=>{
   const supported=/\.mp3$/i.test(item.file.name);
   const tags=supported?await readAudioMetadata(item.file):{};
-  return {item,tags}; })); if(request!==bulkMetadataRequest)return; for(const {item,tags} of entries){
+  return {item,tags};
+ }));
+ if(request!==bulkMetadataRequest)return;
+ for(const {item,tags} of entries){
   next.set(item.file,{
    title:tags.title||titleFromFile(item.file.name),
    artist:tags.artist||"",
@@ -758,7 +766,6 @@ $("bulkUploadBtn").onclick=async()=>{
  if(userResult.error||!user)return setBulkSummary("Tu sesión venció. Cierra sesión y vuelve a entrar.");
 
  await prepareBulkMetadata();
- const artist=$("bulkArtist").value.trim()||"Artista independiente";
  const albumTyped=$("bulkAlbum").value.trim();
  const cover=$("bulkCover").files[0]||null;
 
@@ -1093,3 +1100,20 @@ $("fullNext").onclick=()=>{
 $("fullShuffle").onclick=()=>{
   $("shuffleBtn").click();
 };
+
+$("fullRepeat").onclick=()=>{
+  $("repeatBtn").click();
+};
+
+$("fullSeek").oninput=()=>{
+  if(audio.duration){
+    audio.currentTime=Number($("fullSeek").value)/100*audio.duration;
+  }
+};
+
+audio.addEventListener("timeupdate",()=>{
+  $("fullSeek").value=audio.duration?audio.currentTime/audio.duration*100:0;
+  $("fullCurrentTime").textContent=time(audio.currentTime);
+  $("fullDuration").textContent=time(audio.duration);
+  $("fullPlay").textContent=audio.paused?"▶":"Ⅱ";
+});
