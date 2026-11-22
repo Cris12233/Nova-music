@@ -100,6 +100,43 @@ end $$;
 grant select, insert on public.nova_admin_audit_log to authenticated;
 
 
+
+-- Historial de inicios de sesión para revisión de seguridad del administrador.
+create table if not exists public.nova_login_events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  user_email text not null,
+  device_id uuid not null,
+  device_label text not null default 'Dispositivo',
+  created_at timestamptz not null default now()
+);
+
+create index if not exists nova_login_events_created_at_idx
+  on public.nova_login_events(created_at desc);
+create index if not exists nova_login_events_user_created_idx
+  on public.nova_login_events(user_id, created_at desc);
+
+alter table public.nova_login_events enable row level security;
+
+do $
+begin
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='nova_login_events' and policyname='NOVA admins read login history') then
+    create policy "NOVA admins read login history"
+      on public.nova_login_events for select to authenticated
+      using (public.is_nova_admin());
+  end if;
+  if not exists (select 1 from pg_policies where schemaname='public' and tablename='nova_login_events' and policyname='NOVA members record own login') then
+    create policy "NOVA members record own login"
+      on public.nova_login_events for insert to authenticated
+      with check (
+        user_id = auth.uid()
+        and (public.is_nova_member_approved() or public.is_nova_admin())
+      );
+  end if;
+end $;
+
+grant select, insert on public.nova_login_events to authenticated;
+
 -- Permite al administrador revocar un dispositivo individual sin expulsar los demás.
 create or replace function public.nova_admin_revoke_device(p_user_id uuid, p_device_id uuid)
 returns boolean
