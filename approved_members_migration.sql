@@ -49,18 +49,8 @@ using (
 drop policy if exists "Admins can update access requests" on public.user_access;
 create policy "Admins can update access requests"
 on public.user_access for update to authenticated
-using (
-  exists (
-    select 1 from public.artist_admins a
-    where a.user_id = auth.uid()
-  )
-)
-with check (
-  exists (
-    select 1 from public.artist_admins a
-    where a.user_id = auth.uid()
-  )
-);
+using (public.is_nova_admin())
+with check (public.is_nova_admin());
 
 create or replace function public.create_pending_user_access()
 returns trigger
@@ -142,10 +132,7 @@ using (
       select 1 from public.user_access u
       where u.user_id = auth.uid() and u.status = 'approved'
     )
-    or exists (
-      select 1 from public.artist_admins a
-      where a.user_id = auth.uid()
-    )
+    or public.is_nova_admin()
   )
 );
 
