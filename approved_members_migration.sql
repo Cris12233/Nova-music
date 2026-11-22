@@ -93,7 +93,7 @@ drop policy if exists "Public can read songs" on public.songs;
 drop policy if exists "Public can read published songs" on public.songs;
 drop policy if exists "Approved members and admins can read published songs" on public.songs;
 
--- Retira cualquier otra política SELECT pública/anon que pudiera seguir abriendo el catálogo.
+-- Reemplaza todas las políticas SELECT anteriores para evitar permisos acumulados por OR.
 do $migration$
 declare
   existing_policy record;
@@ -104,7 +104,6 @@ begin
     where schemaname = 'public'
       and tablename = 'songs'
       and cmd = 'SELECT'
-      and ('public' = any(roles) or 'anon' = any(roles))
   loop
     execute format('drop policy %I on public.songs', existing_policy.policyname);
   end loop;
@@ -114,13 +113,13 @@ $migration$;
 create policy "Approved members and admins can read published songs"
 on public.songs for select to authenticated
 using (
-  is_published = true
-  and (
-    exists (
+  public.is_nova_admin()
+  or (
+    is_published = true
+    and exists (
       select 1 from public.user_access u
       where u.user_id = auth.uid() and u.status = 'approved'
     )
-    or public.is_nova_admin()
   )
 );
 
