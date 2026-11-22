@@ -93,10 +93,29 @@
     <section class="section-head" id="library">
       <div><p class="eyebrow">LA COLECCIÓN</p><h2>Últimos lanzamientos <span class="count" id="trackCount">0</span></h2></div>
       <div class="search-wrap"><span>⌕</span><input id="search" placeholder="Buscar una canción..." autocomplete="off"></div>
+      <div class="library-filters" aria-label="Filtros de biblioteca">
+        <select id="artistFilter" aria-label="Filtrar por artista"><option value="">Todos los artistas</option></select>
+        <select id="albumFilter" aria-label="Filtrar por álbum"><option value="">Todos los álbumes</option></select>
+        <select id="sortFilter" aria-label="Ordenar canciones">
+          <option value="recent">Más recientes</option>
+          <option value="oldest">Más antiguas</option>
+          <option value="title">Título A–Z</option>
+          <option value="artist">Artista A–Z</option>
+        </select>
+      </div>
     </section>
 
     <section id="trackGrid" class="track-grid">
       <div class="empty-state"><div class="empty-icon">♫</div><h3>Tu escenario está listo</h3><p>Las canciones que publiques aparecerán aquí.</p></div>
+    </section>
+    <section class="playlist-section nova-discover-section" id="discoverSection">
+      <div class="section-head compact">
+        <div><p class="eyebrow">SELECCIÓN NOVA</p><h2>Recomendadas para ti</h2></div>
+        <span class="muted-text">Según tus favoritos e historial</span>
+      </div>
+      <div id="recommendGrid" class="track-grid">
+        <p class="muted-text">Escucha y guarda canciones para recibir recomendaciones.</p>
+      </div>
     </section>
     <section class="playlist-section" id="favoritesSection">
   <div class="section-head compact">
@@ -152,6 +171,7 @@
   <p class="eyebrow">REPRODUCIENDO EN NOVA MUSIC</p>
 
   <div class="full-cover" id="fullCover">♫</div>
+  <div class="nova-visualizer" id="novaVisualizer" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
 
   <div class="full-song-info">
     <h2 id="fullTitle">Selecciona una canción</h2>
@@ -175,6 +195,7 @@
   <div class="full-extra">
     <button id="fullShuffle">🔀 Aleatorio</button>
     <button id="fullRepeat">🔁 Repetir</button>
+    <button id="sleepTimerBtn" type="button">⏱ Temporizador apagado</button>
   </div>
 </div>
   

@@ -105,6 +105,8 @@ let trackedPlayId = null;
 let lastHistorySave = 0;
 let historyEntries = [];
 let pendingResumeSeconds = 0;
+let sleepTimerTimeout = null;
+let sleepTimerMinutes = 0;
 let favoriteTracks = JSON.parse(localStorage.getItem("nova_favorites") || "[]");
 let playQueue = [];
 let queueIndex = -1;
@@ -226,9 +228,46 @@ function renderFavorites(){
   grid.querySelectorAll("[data-delete-song]").forEach(button=>button.onclick=()=>deleteSong(button.dataset.deleteSong));
   grid.querySelectorAll("[data-download]").forEach(button=>button.onclick=event=>{event.preventDefault();downloadTrack(button.dataset.download)});
 }
+function renderLibraryFilters(){
+ const unique=(key)=>[...new Set(tracks.map(track=>(track[key]||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
+ const fill=(id,values,placeholder)=>{
+  const select=$(id);if(!select)return;
+  const previous=select.value;
+  select.innerHTML='<option value="">'+placeholder+'</option>'+values.map(value=>'<option value="'+escapeAttr(value)+'">'+escapeHtml(value)+'</option>').join("");
+  select.value=values.includes(previous)?previous:"";
+  if(!select.dataset.bound){select.addEventListener("change",renderTracks);select.dataset.bound="1";}
+ };
+ fill("artistFilter",unique("artist"),"Todos los artistas");
+ fill("albumFilter",unique("album"),"Todos los álbumes");
+ const sort=$("sortFilter");
+ if(sort&&!sort.dataset.bound){sort.addEventListener("change",renderTracks);sort.dataset.bound="1";}
+}
+
+function renderRecommendations(){
+ const grid=$("recommendGrid");if(!grid)return;
+ const listened=new Set(historyEntries.map(item=>item.song_id));
+ const seeds=tracks.filter(track=>favoriteTracks.includes(track.id)||listened.has(track.id));
+ const artists=new Set(seeds.map(track=>(track.artist||"").trim().toLowerCase()).filter(Boolean));
+ let candidates=tracks.filter(track=>!favoriteTracks.includes(track.id)&&!listened.has(track.id)&&artists.has((track.artist||"").trim().toLowerCase()));
+ if(candidates.length<4)candidates=tracks.filter(track=>!favoriteTracks.includes(track.id)&&!listened.has(track.id));
+ if(candidates.length<4)candidates=tracks.filter(track=>!favoriteTracks.includes(track.id));
+ candidates=candidates.slice(0,8);
+ if(!candidates.length){grid.innerHTML='<p class="muted-text">Ya exploraste toda la colección. Pronto habrá más descubrimientos.</p>';return;}
+ grid.innerHTML=candidates.map(track=>{
+  const index=tracks.indexOf(track),cover=track.cover_url?'background-image:url(\''+escapeAttr(track.cover_url)+'\')':"";
+  return '<article class="track-card"><div class="cover" style="'+cover+'"><span class="cover-symbol" '+(track.cover_url?'style="display:none"':"")+' >♫</span><button class="card-play" data-recommend-play="'+index+'">▶</button></div><div class="track-info"><b>'+escapeHtml(track.title)+'</b><span>'+escapeHtml([track.artist||"Artista independiente",track.album].filter(Boolean).join(" · "))+'</span><div class="track-actions"><button data-recommend-play="'+index+'">▶ Escuchar</button><button data-recommend-favorite="'+escapeAttr(track.id)+'">♡ Favorito</button></div></div></article>';
+ }).join("");
+ grid.querySelectorAll("[data-recommend-play]").forEach(button=>button.onclick=()=>playTrack(Number(button.dataset.recommendPlay)));
+ grid.querySelectorAll("[data-recommend-favorite]").forEach(button=>button.onclick=()=>toggleFavorite(button.dataset.recommendFavorite));
+}
+
 function renderTracks(){
  const q=$("search").value.toLowerCase();
- const shown=tracks.filter(t=>(t.title+" "+(t.artist||"")+" "+(t.album||"")).toLowerCase().includes(q));
+ const artist=$("artistFilter")?.value||"",album=$("albumFilter")?.value||"",sort=$("sortFilter")?.value||"recent";
+ let shown=tracks.filter(t=>(t.title+" "+(t.artist||"")+" "+(t.album||"")).toLowerCase().includes(q)&&(!artist||t.artist===artist)&&(!album||t.album===album));
+ if(sort==="oldest")shown=shown.slice().reverse();
+ if(sort==="title")shown=shown.slice().sort((a,b)=>a.title.localeCompare(b.title,"es",{sensitivity:"base"}));
+ if(sort==="artist")shown=shown.slice().sort((a,b)=>(a.artist||"").localeCompare(b.artist||"","es",{sensitivity:"base"}));
  $("trackCount").textContent=tracks.length;
  $("trackGrid").innerHTML=shown.length?shown.map(t=>{
   const idx=tracks.indexOf(t), cover=t.cover_url?`background-image:url('${escapeAttr(t.cover_url)}')`:"";
@@ -252,6 +291,7 @@ return `<article class="track-card"><div class="cover" style="${cover}"><span cl
  document.querySelectorAll("[data-report]").forEach(b=>b.onclick=()=>openSongReport(b.dataset.report));
  document.querySelectorAll("[data-delete-song]").forEach(b=>b.onclick=()=>deleteSong(b.dataset.deleteSong));
 renderFavorites();
+ renderRecommendations();
 }
 
 function memberDisplayName(){return currentSession?.user?.user_metadata?.display_name||currentSession?.user?.email?.split("@")[0]||"Miembro NOVA";}
@@ -286,7 +326,7 @@ async function loadCommunityData(){
   supabase.from("nova_listening_history").select("song_id,progress_seconds,updated_at,song:songs(id,title,artist,album,cover_url)").order("updated_at",{ascending:false}).limit(12),
   supabase.from("nova_notifications").select("id,title,body,created_at,read_at,song_id").order("created_at",{ascending:false}).limit(30)
  ]);
- if(h.error)console.warn("NOVA history:",h.error.message);else{historyEntries=h.data||[];renderHistory();}
+ if(h.error)console.warn("NOVA history:",h.error.message);else{historyEntries=h.data||[];renderHistory();renderRecommendations();}
  if(n.error)console.warn("NOVA notifications:",n.error.message);else renderNotifications(n.data||[]);
 }
 async function openSongComments(songId){
@@ -469,7 +509,7 @@ async function loadTracks(){
  if(!supabase){$("trackGrid").innerHTML='<div class="empty-state"><div class="empty-icon">⚙</div><h3>Falta conectar Supabase</h3><p>Abre README.txt y sigue los pasos para activar tu biblioteca musical.</p></div>';return}
  const {data,error}=await supabase.from("songs").select("id,title,artist,album,cover_url").order("created_at",{ascending:false});
  if(error){$("trackGrid").innerHTML=`<div class="empty-state"><h3>No se pudo cargar la biblioteca</h3><p>${escapeHtml(error.message)}</p></div>`;return}
- tracks=data||[];renderTracks();
+ tracks=data||[];renderLibraryFilters();renderTracks();
  void loadCommunityData();
 }
 
@@ -1178,6 +1218,29 @@ novaNavItems.forEach((item,index)=>{
   item.addEventListener("click",()=>novaSetActive(index));
 });
 /* NOVA MUSIC - Sincronización del reproductor expandido */
+
+function cycleSleepTimer(){
+ const button=$("sleepTimerBtn");if(!button)return;
+ const options=[15,30,45,60];
+ if(sleepTimerTimeout){clearTimeout(sleepTimerTimeout);sleepTimerTimeout=null;}
+ if(sleepTimerMinutes===0)sleepTimerMinutes=15;
+ else if(sleepTimerMinutes===60)sleepTimerMinutes=0;
+ else sleepTimerMinutes=options[options.indexOf(sleepTimerMinutes)+1]||0;
+ if(!sleepTimerMinutes){button.textContent="⏱ Temporizador apagado";toast("Temporizador desactivado");return;}
+ button.textContent="⏱ "+sleepTimerMinutes+" min";
+ const selected=sleepTimerMinutes;
+ sleepTimerTimeout=setTimeout(()=>{
+  audio.pause();
+  $("playBtn").textContent="▶";
+  button.textContent="⏱ Temporizador apagado";
+  sleepTimerMinutes=0;sleepTimerTimeout=null;
+  toast("Temporizador: reproducción pausada");
+ },selected*60*1000);
+ toast("La música se pausará en "+selected+" minutos");
+}
+$("sleepTimerBtn").addEventListener("click",cycleSleepTimer);
+audio.addEventListener("play",()=> $("novaVisualizer")?.classList.add("is-playing"));
+audio.addEventListener("pause",()=> $("novaVisualizer")?.classList.remove("is-playing"));
 
 function updateFullPlayer(){
   $("fullTitle").textContent=$("nowTitle").textContent;
