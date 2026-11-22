@@ -432,6 +432,26 @@ async function openSongReport(songId){
  openModal("communityModal");
  $("sendSongReport").onclick=async()=>{const reason=$("reportReason").value;const details=$("reportDetails").value.trim();$("sendSongReport").disabled=true;const {error}=await supabase.from("nova_song_reports").insert({song_id:songId,user_id:currentSession.user.id,reporter_name:memberDisplayName(),reason,details:details||null});$("sendSongReport").disabled=false;if(error)return toast(error.message||"No se pudo enviar el reporte.");closeModal("communityModal");toast("Reporte enviado. Gracias por avisarnos.");};
 }
+async function loadAdminLoginHistory(session=currentSession){
+ const list=$("adminLoginHistoryList");if(!list||!session)return;
+ list.innerHTML='<p class="muted-text">Cargando accesos…</p>';
+ try{
+  const response=await fetch("https://nova-mega-server.onrender.com/admin/login-history",{headers:{Authorization:"Bearer "+session.access_token}});
+  const result=await response.json();
+  if(!response.ok)throw new Error(result.error||"No se pudo consultar el historial.");
+  const entries=result.entries||[],since=Date.now()-24*60*60*1000,deviceCounts={};
+  entries.filter(entry=>new Date(entry.created_at).getTime()>=since).forEach(entry=>{
+   deviceCounts[entry.user_id]??=new Set();deviceCounts[entry.user_id].add(entry.device_id);
+  });
+  list.innerHTML=entries.length?entries.map(entry=>{
+   const count=deviceCounts[entry.user_id]?.size||0;
+   const warning=count>2?'<em>Más de 2 dispositivos en 24 h</em>':"";
+   return '<article class="nova-login-event"><div><b>'+escapeHtml(entry.user_email||"Cuenta de miembro")+'</b><span>'+escapeHtml(entry.device_label||"Dispositivo")+'</span>'+warning+'</div><small>'+new Date(entry.created_at).toLocaleString("es-MX")+'</small></article>';
+  }).join(""):'<p class="muted-text">Todavía no hay inicios de sesión registrados.</p>';
+ }catch(error){list.innerHTML='<p class="muted-text">'+escapeHtml(error.message)+'</p>';}
+}
+$("refreshAdminLoginHistory")?.addEventListener("click",()=>void loadAdminLoginHistory());
+
 async function loadAdminAudit(session=currentSession){
  const list=$("adminAuditList");if(!list||!session)return;
  list.innerHTML='<p class="muted-text">Cargando actividad…</p>';
@@ -475,7 +495,9 @@ async function loadAdminInsights(session=currentSession){
  else{
   const rows=r.data||[];
   reports.innerHTML=rows.length?rows.map(x=>'<article class="community-report"><div><b>'+escapeHtml(x.song?.title||"Canción")+'</b><span>'+escapeHtml(x.reporter_name||"Miembro")+' · '+escapeHtml(x.reason)+'</span><p>'+escapeHtml(x.details||"Sin detalles adicionales")+'</p><small>'+(x.status==="resolved"?"Resuelto":"Pendiente")+' · '+new Date(x.created_at).toLocaleString("es-MX")+'</small></div>'+(x.status==="resolved"?'':'<button class="outline-btn" data-report-resolve="'+escapeAttr(x.id)+'">Resolver</button>')+'</article>').join(""):'<p class="muted-text">No hay reportes todavía.</p>';
-  reports.querySelectorAll("[data-report-resolve]").forEach(button=>button.onclick=async()=>{const {error}=await supabase.from("nova_song_reports").update({status:"resolved",resolved_at:new Date().toISOString()}).eq("id",button.dataset.reportResolve);if(error)return toast("No se pudo actualizar el reporte.");void loadAdminInsights(session);});
+  reports.querySelectorAll("[data-report-resolve]").forEach(button=>button.onclick=async()=>{const {error}=await supabase.from("nova_song_reports").update({status:"resolved",resolved_at:new Date().toISOString()}).eq("id",button.dataset.reportResolve);if(error)return toast("No se pudo actualizar el reporte.");void loadAdminInsights(session);
+  void loadAdminAudit(session);
+  void loadAdminLoginHistory(session);});
  }
 }
 $("refreshAdminInsights")?.addEventListener("click",()=>loadAdminInsights());
@@ -721,6 +743,14 @@ async function checkMemberAccess(session){
   const result=await response.json();
   if(!response.ok)throw new Error(result.error||"Tu cuenta está pendiente de aprobación.");
   memberApproved=true;
+  const loginLogKey="nova_login_logged_"+session.user.id;
+  if(!sessionStorage.getItem(loginLogKey)){
+   fetch("https://nova-mega-server.onrender.com/member-login-event",{
+    method:"POST",
+    headers:{Authorization:`Bearer ${session.access_token}`,"Content-Type":"application/json"},
+    body:JSON.stringify({device_id:getNovaDeviceId(),device_label:(navigator.userAgent||"Dispositivo").slice(0,120)})
+   }).then(response=>{if(response.ok)sessionStorage.setItem(loginLogKey,"1");}).catch(error=>console.warn("NOVA login history:",error.message));
+  }
   document.body.classList.remove("access-locked");
   $("memberGate").classList.add("hidden");
   await loadTracks();
