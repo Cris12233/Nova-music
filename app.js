@@ -302,6 +302,8 @@ function lockMemberArea(message){
  audio.load();
  $("trackGrid").innerHTML='<div class="empty-state"><h3>Biblioteca privada</h3><p>Inicia sesión con una cuenta aprobada para descubrir la música.</p></div>';
  $("memberGateMessage").textContent=message||"Tu acceso será habilitado cuando el administrador apruebe tu solicitud.";
+ $("memberRefreshBtn").classList.toggle("hidden",!currentSession);
+ $("memberLogoutBtn").classList.toggle("hidden",!currentSession);
 }
 
 async function checkMemberAccess(session){
@@ -397,6 +399,15 @@ $("memberLoginBtn").onclick=async()=>{
  });
  if(error){$("memberGateMessage").textContent=error.message;return}
  await checkMemberAccess(data.session);
+};
+
+$("memberRefreshBtn").onclick=async()=>{
+ if(currentSession)await checkMemberAccess(currentSession);
+};
+$("memberLogoutBtn").onclick=async()=>{
+ if(supabase)await supabase.auth.signOut();
+ showSession(null);
+ lockMemberArea("Sesión cerrada. Inicia sesión o solicita acceso para entrar.");
 };
 
 $("memberRegisterBtn").onclick=async()=>{
