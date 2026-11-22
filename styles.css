@@ -2233,3 +2233,41 @@ footer {
     animation: none;
   }
 }
+
+
+/* NOVA MUSIC — ADMIN PANEL PREMIUM | CSS only */
+#adminModal{background:rgba(4,5,14,.84);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+#adminModal .modal{position:relative;width:min(560px,100%);padding:clamp(22px,4vw,34px);border:1px solid rgba(177,151,255,.28);border-radius:26px;background:radial-gradient(circle at 100% 0%,rgba(117,83,220,.17),transparent 34%),linear-gradient(150deg,rgba(27,25,49,.98),rgba(11,16,31,.99));box-shadow:0 30px 100px rgba(0,0,0,.62),0 0 45px rgba(139,92,246,.13),inset 0 1px 0 rgba(255,255,255,.07)}
+#adminModal .modal>.eyebrow{display:inline-flex;align-items:center;gap:8px;margin:4px 0 9px;color:#bda8ff;font-size:10px;font-weight:800;letter-spacing:2.1px}
+#adminModal .modal>h2{margin:0 42px 9px 0;color:#fff;font-family:"Space Grotesk",sans-serif;font-size:clamp(25px,5vw,32px);letter-spacing:-.9px}
+#adminModal .modal-desc{max-width:420px;margin:0 0 24px;color:#aaa7c2;font-size:13px;line-height:1.7}
+#adminModal .close-btn{width:38px;height:38px;border:1px solid rgba(190,173,255,.2);border-radius:12px;background:rgba(255,255,255,.055);color:#e8ddff;transition:.2s ease}
+#adminModal .close-btn:hover{border-color:rgba(190,173,255,.6);background:rgba(139,92,246,.18);transform:rotate(90deg)}
+#adminModal label{display:block;margin:17px 0 8px;color:#d8d1ef;font-size:12px;font-weight:700}
+#adminModal input:not([type=file]){width:100%;min-height:46px;padding:12px 14px;border:1px solid rgba(174,148,255,.2);border-radius:13px;outline:none;background:rgba(7,10,23,.78);color:#fff;transition:border-color .2s ease,box-shadow .2s ease,background .2s ease}
+#adminModal input:not([type=file]):focus{border-color:#a78bfa;background:rgba(12,13,30,.96);box-shadow:0 0 0 4px rgba(139,92,246,.11),0 0 22px rgba(139,92,246,.1)}
+#adminModal input::placeholder{color:#77748f}
+#adminModal .primary-btn.full{min-height:48px;margin-top:20px;border-radius:14px;font-weight:800;box-shadow:0 10px 26px rgba(112,72,255,.25)}
+#adminModal .signed-in{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:18px 0 20px;padding:13px 14px;border:1px solid rgba(100,235,180,.2);border-radius:15px;background:linear-gradient(110deg,rgba(35,120,91,.13),rgba(255,255,255,.025));color:#d8f8e9;font-size:12px}
+#adminModal .signed-in .live-dot{flex:0 0 8px}
+#adminModal #signedEmail{min-width:0;flex:1 1 130px;overflow-wrap:anywhere}
+#adminModal .text-btn{padding:7px 10px;border:1px solid rgba(255,153,170,.22);border-radius:10px;background:rgba(255,90,120,.07);color:#ffb2c0;font-size:11px}
+#adminModal .bulk-intro{display:grid;gap:5px;margin:20px 0 22px;padding:16px;border:1px solid rgba(174,148,255,.22);border-radius:16px;background:radial-gradient(circle at 100% 0%,rgba(90,126,255,.13),transparent 55%),rgba(255,255,255,.035)}
+#adminModal .bulk-intro b{color:#eee8ff;font-family:"Space Grotesk",sans-serif;font-size:16px}
+#adminModal .bulk-intro span{color:#a9a5bf;font-size:12px;line-height:1.6}
+#adminModal input[type=file]{display:block;width:100%;min-height:48px;padding:8px;border:1px dashed rgba(174,148,255,.35);border-radius:13px;background:rgba(8,11,25,.62);color:#aaa6c1;font-size:11px}
+#adminModal input[type=file]::file-selector-button{margin-right:10px;padding:9px 12px;border:0;border-radius:9px;background:linear-gradient(120deg,#a78bfa,#6386ef);color:#100d20;font-size:11px;font-weight:800}
+#adminModal .hint{margin:9px 0 15px;color:#88859f;font-size:11px;line-height:1.65}
+#adminModal .message{padding:12px 14px;border:1px solid rgba(174,148,255,.16);border-radius:12px;background:rgba(255,255,255,.035);color:#bcb6d2;font-size:12px;line-height:1.6}
+#adminModal .bulk-progress-wrap{margin:20px 0 14px;padding:15px;border:1px solid rgba(174,148,255,.16);border-radius:15px;background:rgba(7,10,23,.52)}
+#adminModal .bulk-progress-head{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:11px;color:#e4def5;font-size:11px}
+#adminModal #bulkProgressText{color:#aaa5c2;font-variant-numeric:tabular-nums}
+#adminModal .bulk-progress-track{height:8px;overflow:hidden;border-radius:99px;background:rgba(255,255,255,.09)}
+#adminModal .bulk-progress-fill{border-radius:inherit;background:linear-gradient(90deg,#a78bfa,#5e9dff,#64e5c0);box-shadow:0 0 16px rgba(139,92,246,.42)}
+#adminModal .bulk-queue{display:grid;gap:8px;margin:12px 0}
+#adminModal .bulk-queue>*{padding:11px 13px;border:1px solid rgba(174,148,255,.13);border-radius:11px;background:rgba(255,255,255,.03);color:#c9c3dd;font-size:11px;overflow-wrap:anywhere}
+#adminModal .modal{scrollbar-width:thin;scrollbar-color:rgba(167,139,250,.55) rgba(255,255,255,.04)}
+#adminModal .modal::-webkit-scrollbar{width:6px}
+#adminModal .modal::-webkit-scrollbar-thumb{border-radius:99px;background:rgba(167,139,250,.48)}
+@media(max-width:600px){#adminModal{align-items:flex-start;padding:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom))}#adminModal .modal{width:100%;max-height:calc(100dvh - 24px);margin:auto 0;padding:23px 18px;border-radius:21px}#adminModal .modal-desc{margin-bottom:19px}#adminModal .signed-in{align-items:flex-start}#adminModal .bulk-progress-head{display:grid}}
+@media(prefers-reduced-motion:reduce){#adminModal *,#adminModal *:before,#adminModal *:after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
