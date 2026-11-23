@@ -122,7 +122,18 @@ async function saveAll() {
   if (busy) return;
   if (!state.approved || !state.downloadsAllowed) { message("Necesitas acceso aprobado y permiso de descarga."); return; }
   if (!navigator.onLine) { message("Conéctate a internet para guardar canciones."); return; }
-  if (!confirm("Se guardarán las canciones disponibles. Esto puede ocupar varios GB. ¿Continuar?")) return;
+  let spaceNote = "No se pudo calcular el espacio disponible.";
+  try {
+    if (navigator.storage && navigator.storage.estimate) {
+      const estimate = await navigator.storage.estimate();
+      const free = Math.max(0, (estimate.quota || 0) - (estimate.usage || 0));
+      spaceNote = "Espacio libre estimado en este dispositivo: " + formatSize(free) + ".";
+    }
+  } catch (error) { console.warn("NOVA storage estimate:", error.message); }
+  if (!confirm("Se guardarán las canciones disponibles. " + spaceNote + " La biblioteca puede ocupar muchos GB y el navegador puede limitar el almacenamiento. ¿Continuar?")) return;
+  try {
+    if (navigator.storage && navigator.storage.persist) await navigator.storage.persist();
+  } catch (error) { console.warn("NOVA persistent storage:", error.message); }
   busy = true; pauseRequested = false;
   const button = byId("novaOfflineAll");
   const pauseButton = byId("novaOfflinePause");
