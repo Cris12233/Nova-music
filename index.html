@@ -4,6 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#090b12">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="./icons/nova-icon.svg">
+  <link rel="apple-touch-icon" href="./icons/nova-icon.svg">
   <title>NOVA MUSIC — Música inédita</title>
   <link rel="preconnect" href="https://nova-mega-server.onrender.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -276,6 +282,9 @@
   </div>
   <div class="modal-backdrop" id="communityModal"><div class="modal small-modal"><button class="close-btn" data-close="communityModal">×</button><p class="eyebrow">COMUNIDAD NOVA</p><h2 id="communityTitle">Comentarios</h2><div id="communityContent"></div></div></div>
   <div class="toast" id="toast"></div>
+  <script>
+    if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("./service-worker.js").catch(() => {}));
+  </script>
   <script type="module" src="app.js"></script>
 
 <nav class="nova-bottom-nav" aria-label="Navegación principal">
