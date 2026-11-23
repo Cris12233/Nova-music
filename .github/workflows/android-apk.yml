@@ -45,6 +45,13 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
+      - name: Validate JavaScript syntax
+        run: |
+          for file in app.js audio-metadata.js nova-offline.js service-worker.js config.js; do
+            node --input-type=module --check < "$file"
+          done
+          node --check scripts/copy-mobile.mjs
+
       - name: Copy web app and add Android platform
         run: |
           npm run build:web
