@@ -11,6 +11,7 @@ on:
       - 'styles.css'
       - 'app.js'
       - 'audio-metadata.js'
+      - 'nova-offline.js'
       - 'config.js'
       - '.github/workflows/android-apk.yml'
 
@@ -29,7 +30,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
       - name: Set up Java
         uses: actions/setup-java@v4
