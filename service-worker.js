@@ -12,7 +12,10 @@ const SHELL = [
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(SHELL))
+      .then(async cache => {
+        await cache.addAll(SHELL);
+        await cache.add("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm").catch(() => {});
+      })
       .then(() => self.skipWaiting())
   );
 });
