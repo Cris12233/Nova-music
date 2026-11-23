@@ -1,0 +1,21 @@
+{
+  "id": "./",
+  "name": "NOVA MUSIC — Música inédita",
+  "short_name": "NOVA MUSIC",
+  "description": "Escucha música inédita en NOVA MUSIC.",
+  "lang": "es-MX",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#090b12",
+  "theme_color": "#090b12",
+  "icons": [
+    {
+      "src": "./icons/nova-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
