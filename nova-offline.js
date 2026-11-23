@@ -3,6 +3,7 @@ const STORE = "tracks";
 const API = "https://nova-mega-server.onrender.com";
 let catalog = [];
 let busy = false;
+let pauseRequested = false;
 let objectUrl = null;
 
 const byId = id => document.getElementById(id);
@@ -122,18 +123,29 @@ async function saveAll() {
   if (!state.approved || !state.downloadsAllowed) { message("Necesitas acceso aprobado y permiso de descarga."); return; }
   if (!navigator.onLine) { message("Conéctate a internet para guardar canciones."); return; }
   if (!confirm("Se guardarán las canciones disponibles. Esto puede ocupar varios GB. ¿Continuar?")) return;
-  busy = true;
-  const button = byId("novaOfflineAll"); button.disabled = true;
-  let saved = 0, existing = 0, errors = 0;
+  busy = true; pauseRequested = false;
+  const button = byId("novaOfflineAll");
+  const pauseButton = byId("novaOfflinePause");
+  button.disabled = true; pauseButton.disabled = false; pauseButton.textContent = "Pausar";
+  let saved = 0, existing = 0, errors = 0, index = 0;
   try {
-    for (let index = 0; index < catalog.length; index++) {
+    for (; index < catalog.length; index++) {
+      while (pauseRequested) {
+        message("Descarga pausada. Pulsa Continuar para reanudar.");
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+      if (!navigator.onLine) { errors++; message("Se perdió la conexión. Vuelve a pulsar Guardar toda mi música para continuar."); break; }
       try { if (await saveTrack(catalog[index])) saved++; else existing++; }
-      catch (error) { errors++; message("Se detuvo en " + catalog[index].title + ": " + error.message); break; }
+      catch (error) { errors++; message("Se detuvo en " + catalog[index].title + ": " + error.message + ". Puedes reanudar; las canciones completas ya guardadas se conservarán."); break; }
       message("Procesando " + (index + 1) + " de " + catalog.length + " · Nuevas: " + saved + " · Ya guardadas: " + existing);
       await render();
     }
-    if (!errors) message("Terminado: " + saved + " nuevas, " + existing + " ya guardadas.");
-  } finally { busy = false; button.disabled = false; await render(); }
+    if (index >= catalog.length) message("Terminado: " + saved + " nuevas, " + existing + " ya guardadas.");
+  } finally {
+    busy = false; pauseRequested = false; button.disabled = false;
+    pauseButton.disabled = true; pauseButton.textContent = "Pausar";
+    await render();
+  }
 }
 function init() {
   document.addEventListener("click", event => {
@@ -141,6 +153,7 @@ function init() {
     if (button) { event.preventDefault(); void saveOne(button.dataset.offlineSave); }
   });
   byId("novaOfflineAll")?.addEventListener("click", () => void saveAll());
+  byId("novaOfflinePause")?.addEventListener("click", () => { if (!busy) return; pauseRequested = !pauseRequested; byId("novaOfflinePause").textContent = pauseRequested ? "Continuar" : "Pausar"; if (!pauseRequested) message("Reanudando descargas…"); });
   byId("novaOfflineClear")?.addEventListener("click", async () => {
     if (!confirm("¿Quitar todas las canciones guardadas en este dispositivo? No se borrarán de MEGA.")) return;
     const db = await openDB();
