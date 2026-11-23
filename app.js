@@ -658,7 +658,7 @@ async function loadTracks(){
  if(!supabase){$("trackGrid").innerHTML='<div class="empty-state"><div class="empty-icon">⚙</div><h3>Falta conectar Supabase</h3><p>Abre README.txt y sigue los pasos para activar tu biblioteca musical.</p></div>';return}
  const {data,error}=await supabase.from("songs").select("id,title,artist,album,cover_url").order("created_at",{ascending:false});
  if(error){$("trackGrid").innerHTML=`<div class="empty-state"><h3>No se pudo cargar la biblioteca</h3><p>${escapeHtml(error.message)}</p></div>`;return}
- tracks=data||[];NovaOffline.setTracks(tracks);renderLibraryFilters();renderTracks();NovaOffline.render();void loadArtistProfiles();
+ tracks=data||[];try{localStorage.setItem("nova_offline_catalog_"+currentSession.user.id,JSON.stringify(tracks));}catch(error){console.warn("NOVA offline catalog cache:",error.message);}NovaOffline.setTracks(tracks);renderLibraryFilters();renderTracks();NovaOffline.render();void loadArtistProfiles();
  void loadCommunityData();
 }
 
@@ -765,6 +765,7 @@ async function checkMemberAccess(session){
   if(!response.ok)throw new Error(result.error||"Tu cuenta está pendiente de aprobación.");
   memberApproved=true;
   downloadsAllowed=Boolean(result.downloads_allowed||result.admin);
+  try{localStorage.setItem("nova_offline_access_"+session.user.id,JSON.stringify({approved:true,downloadsAllowed,validatedAt:Date.now()}));}catch(error){console.warn("NOVA offline access cache:",error.message);}
   const loginLogKey="nova_login_logged_"+session.user.id;
   if(!sessionStorage.getItem(loginLogKey)){
    fetch("https://nova-mega-server.onrender.com/member-login-event",{
@@ -778,10 +779,34 @@ async function checkMemberAccess(session){
   await loadTracks();
   return true;
  }catch(error){
+  if(!navigator.onLine){
+   try{
+    const cached=JSON.parse(localStorage.getItem("nova_offline_access_"+session.user.id)||"null");
+    const savedTracks=JSON.parse(localStorage.getItem("nova_offline_catalog_"+session.user.id)||"[]");
+    const validLease=cached?.approved&&Date.now()-Number(cached.validatedAt)<7*24*60*60*1000;
+    if(validLease&&Array.isArray(savedTracks)&&savedTracks.length){
+     memberApproved=true;
+     downloadsAllowed=Boolean(cached.downloadsAllowed);
+     tracks=savedTracks;
+     NovaOffline.setTracks(tracks);
+     document.body.classList.remove("access-locked");
+     $("memberGate").classList.add("hidden");
+     renderLibraryFilters();
+     renderTracks();
+     NovaOffline.render();
+     $("memberGateMessage").textContent="Modo sin conexión: acceso temporal con la última verificación guardada. Conéctate para actualizar permisos.";
+     return true;
+    }
+   }catch(cacheError){console.warn("NOVA offline access:",cacheError.message);}
+  }
   lockMemberArea(error.message);
   return false;
  }
 }
+
+window.addEventListener("online",()=>{
+ if(currentSession&&!adminVerified)void checkMemberAccess(currentSession);
+});
 
 let memberDirectory = [];
 let memberFilter = "pending";
