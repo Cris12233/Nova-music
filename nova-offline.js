@@ -76,7 +76,7 @@ async function saveTrack(track) {
   if (!state.downloadsAllowed) throw new Error("El administrador todavía no autorizó las descargas.");
   if (await get(track.id)) return false;
   const ticket = await playbackTicket();
-  const url = API + "/stream?id=" + encodeURIComponent(track.id) + "&ticket=" + encodeURIComponent(ticket);
+  const url = API + "/offline?id=" + encodeURIComponent(track.id) + "&ticket=" + encodeURIComponent(ticket);
   const response = await fetch(url);
   if (!response.ok) throw new Error("No se pudo guardar " + track.title + ".");
   const blob = await response.blob();
