@@ -40,7 +40,7 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
         with:
-          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+          packages: 'platform-tools platforms;android-33 platforms;android-35 build-tools;35.0.0'
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
@@ -63,6 +63,17 @@ jobs:
       - name: Build debug APK
         working-directory: android
         run: ./gradlew assembleDebug
+
+      - name: Install and launch APK on Android 13 emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          script: |
+            adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+            adb shell monkey -p com.novamusic.app 1
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
