@@ -1412,7 +1412,32 @@ novaSections.forEach(section=>{
 });
 
 novaNavItems.forEach((item,index)=>{
-  item.addEventListener("click",()=>novaSetActive(index));
+  item.addEventListener("click",event=>{
+    event.preventDefault();
+
+    const href=item.getAttribute("href")||"#";
+    const target=href==="#"?null:document.querySelector(href);
+    novaSetActive(index);
+
+    if(href==="#"||!target){
+      history.replaceState(null,"",window.location.pathname+window.location.search);
+      window.scrollTo({
+        top:0,
+        behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"
+      });
+      return;
+    }
+
+    history.replaceState(null,"",href);
+    const topbar=document.querySelector(".topbar");
+    const offset=(topbar?.getBoundingClientRect().height||0)+12;
+    const top=Math.max(0,window.scrollY+target.getBoundingClientRect().top-offset);
+
+    window.scrollTo({
+      top,
+      behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"
+    });
+  });
 });
 /* NOVA MUSIC - Sincronización del reproductor expandido */
 
