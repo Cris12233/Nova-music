@@ -2,6 +2,8 @@ const CACHE_NAME = "nova-music-shell-v1";
 const SHELL = [
   "./",
   "./index.html",
+  "./manifest.webmanifest",
+  "./icons/nova-icon.svg",
   "./styles.css",
   "./app.js",
   "./audio-metadata.js",
