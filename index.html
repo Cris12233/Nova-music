@@ -283,6 +283,15 @@
   </div>
   <div class="modal-backdrop" id="communityModal"><div class="modal small-modal"><button class="close-btn" data-close="communityModal">×</button><p class="eyebrow">COMUNIDAD NOVA</p><h2 id="communityTitle">Comentarios</h2><div id="communityContent"></div></div></div>
   <div class="toast" id="toast"></div>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js").catch(error => {
+          console.warn("NOVA offline web shell:", error.message);
+        });
+      });
+    }
+  </script>
   <script type="module" src="app.js"></script>
 
 <nav class="nova-bottom-nav" aria-label="Navegación principal">
