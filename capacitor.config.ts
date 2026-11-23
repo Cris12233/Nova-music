@@ -4,8 +4,6 @@ const config: CapacitorConfig = {
   appId: 'com.novamusic.app',
   appName: 'NOVA MUSIC',
   webDir: 'www',
-  bundledWebRuntime: false,
-  backgroundColor: '#090b12',
   ios: {
     contentInset: 'automatic'
   },
