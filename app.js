@@ -470,6 +470,21 @@ async function loadAdminAudit(session=currentSession){
 }
 $("refreshAdminAudit")?.addEventListener("click",()=>void loadAdminAudit());
 
+async function loadAdminSecurityAlerts(session=currentSession){
+ const list=$("adminSecurityAlertsList");if(!list||!session)return;
+ list.innerHTML='<p class="muted-text">Cargando alertas…</p>';
+ try{
+  const response=await fetch(`${NOVA_API_BASE}/admin/security-alerts`,{headers:{Authorization:"Bearer "+session.access_token}});
+  const result=await response.json();
+  if(!response.ok)throw new Error(result.error||"No se pudieron consultar las alertas.");
+  const alerts=result.alerts||[];
+  list.innerHTML=alerts.length?alerts.map(alert=>
+   '<article class="nova-audit-row"><div><b>Actividad sospechosa</b><span>'+escapeHtml(alert.user_email||"Cuenta sin correo")+' · '+escapeHtml(alert.song_title||"Canción no identificada")+'</span><small>'+escapeHtml(alert.reason||"Actividad inusual")+'</small></div><small>'+new Date(alert.created_at).toLocaleString("es-MX")+'</small></article>'
+  ).join(""):'<p class="muted-text">No hay alertas de seguridad registradas.</p>';
+ }catch(error){list.innerHTML='<p class="muted-text">'+escapeHtml(error.message)+'</p>';}
+}
+$("refreshAdminSecurityAlerts")?.addEventListener("click",()=>void loadAdminSecurityAlerts());
+
 async function loadAdminInsights(session=currentSession){
  if(!supabase||!session||!$("adminInsights"))return;
  const stats=$("adminStats"),reports=$("adminReportsList");stats.textContent="Cargando estadísticas…";reports.innerHTML='<p class="muted-text">Cargando reportes…</p>';
@@ -702,6 +717,7 @@ async function checkMegaStatus(session){
   if(memberApproved)renderTracks();
   void refreshMembers(session);
   void loadAdminInsights(session);
+  void loadAdminSecurityAlerts(session);
   return true;
  }catch(error){
   adminVerified=false;
