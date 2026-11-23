@@ -21,7 +21,7 @@ permissions:
 jobs:
   build-android:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -64,8 +64,14 @@ jobs:
         working-directory: android
         run: ./gradlew assembleDebug
 
-      # Publish the build before emulator startup so a slow emulator cannot
-      # prevent retrieving the APK for device testing.
+      - name: Verify APK metadata and signature
+        run: |
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | head -n 8
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$APK"
+
+      # Publish the APK before emulator startup so a slow emulator cannot
+      # prevent retrieving the build for device testing.
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
@@ -81,6 +87,11 @@ jobs:
           target: default
           arch: x86_64
           profile: pixel_2
+          emulator-boot-timeout: 600
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
           script: |
+            adb wait-for-device
+            adb shell getprop ro.build.version.release
             adb install -r android/app/build/outputs/apk/debug/app-debug.apk
             adb shell monkey -p com.novamusic.app 1
