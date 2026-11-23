@@ -64,6 +64,16 @@ jobs:
         working-directory: android
         run: ./gradlew assembleDebug
 
+      # Publish the build before emulator startup so a slow emulator cannot
+      # prevent retrieving the APK for device testing.
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: nova-music-android-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
       - name: Install and launch APK on Android 13 emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -74,11 +84,3 @@ jobs:
           script: |
             adb install -r android/app/build/outputs/apk/debug/app-debug.apk
             adb shell monkey -p com.novamusic.app 1
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: nova-music-android-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
-          retention-days: 14
