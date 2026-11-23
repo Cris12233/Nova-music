@@ -9,6 +9,7 @@ const files = [
   'app.js',
   'audio-metadata.js',
   'nova-offline.js',
+  'service-worker.js',
   'config.js'
 ];
 
