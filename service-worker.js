@@ -38,7 +38,7 @@ self.addEventListener("fetch", event => {
       const cache = await caches.open(CACHE_NAME);
       try {
         const response = await fetch(request);
-        if (response.ok && (request.destination === "document" || /\\.(?:js|css)$/.test(url.pathname))) {
+        if (response.ok && (request.destination === "document" || /\.(?:js|css)$/.test(url.pathname))) {
           cache.put(request, response.clone());
         }
         return response;
