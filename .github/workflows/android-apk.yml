@@ -40,7 +40,7 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
         with:
-          packages: 'platform-tools platforms;android-33 platforms;android-35 build-tools;35.0.0'
+          packages: 'platform-tools platforms;android-33 platforms;android-35 system-images;android-33;google_apis;x86_64 build-tools;35.0.0'
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
@@ -70,8 +70,6 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | head -n 8
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose "$APK"
 
-      # Publish the APK before emulator startup so a slow emulator cannot
-      # prevent retrieving the build for device testing.
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
@@ -84,7 +82,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 33
-          target: default
+          target: google_apis
           arch: x86_64
           profile: pixel_2
           emulator-boot-timeout: 600
