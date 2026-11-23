@@ -104,7 +104,7 @@ async function render() {
 async function play(id) {
   const item = await get(id);
   if (!item) return null;
-  if (!context().approved) throw new Error("Conéctate para verificar tu acceso antes de reproducir.");
+  if (!context().approved || !context().downloadsAllowed) throw new Error("Tu acceso o permiso de descarga necesita verificarse.");
   if (objectUrl) URL.revokeObjectURL(objectUrl);
   objectUrl = URL.createObjectURL(item.blob);
   return objectUrl;
