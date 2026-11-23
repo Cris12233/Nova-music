@@ -1,0 +1,19 @@
+{
+  "name": "nova-music-mobile",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Aplicación móvil de NOVA MUSIC basada en la web existente",
+  "scripts": {
+    "build:web": "node scripts/copy-mobile.mjs",
+    "cap:sync": "npm run build:web && cap sync"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/core": "^7.4.3",
+    "@capacitor/ios": "^7.4.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.4.3",
+    "typescript": "^5.9.3"
+  }
+}

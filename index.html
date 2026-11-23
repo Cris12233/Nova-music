@@ -4,6 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#090b12">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="./icons/nova-icon.svg">
+  <link rel="apple-touch-icon" href="./icons/nova-icon.svg">
   <title>NOVA MUSIC — Música inédita</title>
   <link rel="preconnect" href="https://nova-mega-server.onrender.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -135,6 +141,13 @@
   <div id="favoritesGrid" class="track-grid">
     <p class="muted-text">Todavía no tienes canciones favoritas.</p>
   </div>
+    </section>
+    <section class="playlist-section nova-offline-section" id="novaOfflineSection">
+      <div class="section-head compact"><div><p class="eyebrow">TU BIBLIOTECA PRIVADA</p><h2>Mi música sin conexión</h2></div><span id="novaOfflineCount" class="muted-text">0 canciones guardadas</span></div>
+      <div class="nova-offline-toolbar"><button class="primary-btn" id="novaOfflineAll" type="button">⇩ Guardar toda mi música</button><button class="outline-btn" id="novaOfflinePause" type="button" disabled>Pausar</button><button class="outline-btn" id="novaOfflineClear" type="button">Liberar espacio</button></div>
+      <div class="nova-offline-progress" id="novaOfflineProgress" role="status">Las canciones guardadas estarán disponibles sin internet.</div>
+      <div id="novaOfflineList" class="nova-offline-list"><p class="muted-text">Todavía no has guardado canciones.</p></div>
+      <p class="hint">Se guardan en el almacenamiento privado de NOVA MUSIC. El espacio disponible depende del dispositivo y navegador.</p>
     </section>
     <section class="playlist-section community-section" id="historySection"><div class="section-head compact"><div><p class="eyebrow">TU ACTIVIDAD</p><h2>Historial de escucha</h2></div></div><div id="historyGrid" class="community-history-list"><p class="muted-text">Tus canciones escuchadas aparecerán aquí.</p></div></section>
     <section class="playlist-section community-section" id="notificationsSection"><div class="section-head compact"><div><p class="eyebrow">NOVEDADES</p><h2>Notificaciones <span class="count" id="notificationCount">0</span></h2></div></div><div id="notificationsList" class="community-notifications"><p class="muted-text">Todavía no tienes notificaciones.</p></div></section>
@@ -276,6 +289,15 @@
   </div>
   <div class="modal-backdrop" id="communityModal"><div class="modal small-modal"><button class="close-btn" data-close="communityModal">×</button><p class="eyebrow">COMUNIDAD NOVA</p><h2 id="communityTitle">Comentarios</h2><div id="communityContent"></div></div></div>
   <div class="toast" id="toast"></div>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js").catch(error => {
+          console.warn("NOVA offline web shell:", error.message);
+        });
+      });
+    }
+  </script>
   <script type="module" src="app.js"></script>
 
 <nav class="nova-bottom-nav" aria-label="Navegación principal">

@@ -1,6 +1,7 @@
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 import { readAudioMetadata } from "./audio-metadata.js";
+import { NovaOffline } from "./nova-offline.js";
 
 const configured = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("PEGA_AQUI") && SUPABASE_ANON_KEY.length > 30 && !SUPABASE_ANON_KEY.includes("PEGA_AQUI");
 const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storage: window.localStorage } }) : null;
@@ -323,7 +324,7 @@ function renderTracks(){
   const subtitle=[t.artist||"Artista independiente",t.album].filter(Boolean).join(" · ");
   
 
-return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${t.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${idx}">▶</button></div><div class="track-info"><b>${escapeHtml(t.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(t.id)}">${favoriteTracks.includes(t.id)?"❤️":"🤍"} Favorito</button><button data-play="${idx}">▶ Escuchar</button>${downloadsAllowed?'<a href="#" data-download="'+escapeAttr(t.id)+'">↓ Descargar</a>':'<button type="button" class="download-locked" disabled title="El administrador todavía no ha autorizado las descargas">🔒 Descarga no autorizada</button>'}<button data-add="${idx}">＋ Playlist</button><button data-queue="${idx}">＋ Cola</button><button data-comments="${escapeAttr(t.id)}">💬 Comentarios</button><button data-report="${escapeAttr(t.id)}">⚑ Reportar</button>${adminVerified?`<button class="admin-delete-song" data-delete-song="${escapeAttr(t.id)}">🗑 Eliminar</button>`:""}</div></div></article>`;
+return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${t.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${idx}">▶</button></div><div class="track-info"><b>${escapeHtml(t.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(t.id)}">${favoriteTracks.includes(t.id)?"❤️":"🤍"} Favorito</button><button data-play="${idx}">▶ Escuchar</button>${downloadsAllowed?'<a href="#" data-download="'+escapeAttr(t.id)+'">↓ Descargar</a><button type="button" data-offline-save="'+escapeAttr(t.id)+'">⇩ Guardar en NOVA</button>':'<button type="button" class="download-locked" disabled title="El administrador todavía no ha autorizado las descargas">🔒 Descarga no autorizada</button>'}<button data-add="${idx}">＋ Playlist</button><button data-queue="${idx}">＋ Cola</button><button data-comments="${escapeAttr(t.id)}">💬 Comentarios</button><button data-report="${escapeAttr(t.id)}">⚑ Reportar</button>${adminVerified?`<button class="admin-delete-song" data-delete-song="${escapeAttr(t.id)}">🗑 Eliminar</button>`:""}</div></div></article>`;
 
   
  }).join(""):`<div class="empty-state"><div class="empty-icon">♫</div><h3>${tracks.length?"No encontramos esa canción":"Tu escenario está listo"}</h3><p>${tracks.length?"Prueba con otro nombre, artista o álbum.":"Las canciones que publiques aparecerán aquí."}</p></div>`;
@@ -523,6 +524,7 @@ function escapeAttr(s=""){return escapeHtml(s)}
 function memberAudioUrl(endpoint,id,ticket){
  return `https://nova-mega-server.onrender.com/${endpoint}?id=${encodeURIComponent(id)}&ticket=${encodeURIComponent(ticket)}`;
 }
+window.NOVA_OFFLINE_CONTEXT = () => ({ session: currentSession, approved: memberApproved, downloadsAllowed, tracks });
 async function requestPlaybackTicket(){
  if(!currentSession?.access_token)throw new Error("Inicia sesión para reproducir o descargar.");
  const response=await fetch("https://nova-mega-server.onrender.com/playback-ticket",{
@@ -556,10 +558,10 @@ function playTrack(i){
  const queuePosition=playQueue.findIndex(song=>song.id===t.id);
 queueIndex=queuePosition;
 
- requestPlaybackTicket().then(ticket=>{
+ Promise.resolve(NovaOffline.play(t.id)).then(offlineUrl=>{
   if(currentIndex!==i||!memberApproved)return;
-  audio.src=memberAudioUrl("stream",t.id,ticket);
-  return audio.play();
+  if(offlineUrl){audio.src=offlineUrl;return audio.play();}
+  return requestPlaybackTicket().then(ticket=>{if(currentIndex!==i||!memberApproved)return;audio.src=memberAudioUrl("stream",t.id,ticket);return audio.play();});
  }).catch(error=>toast(error.message||"No se pudo reproducir el audio."));
 
  $("nowTitle").textContent=t.title;
@@ -656,7 +658,7 @@ async function loadTracks(){
  if(!supabase){$("trackGrid").innerHTML='<div class="empty-state"><div class="empty-icon">⚙</div><h3>Falta conectar Supabase</h3><p>Abre README.txt y sigue los pasos para activar tu biblioteca musical.</p></div>';return}
  const {data,error}=await supabase.from("songs").select("id,title,artist,album,cover_url").order("created_at",{ascending:false});
  if(error){$("trackGrid").innerHTML=`<div class="empty-state"><h3>No se pudo cargar la biblioteca</h3><p>${escapeHtml(error.message)}</p></div>`;return}
- tracks=data||[];renderLibraryFilters();renderTracks();void loadArtistProfiles();
+ tracks=data||[];try{localStorage.setItem("nova_offline_catalog_"+currentSession.user.id,JSON.stringify(tracks));}catch(error){console.warn("NOVA offline catalog cache:",error.message);}NovaOffline.setTracks(tracks);renderLibraryFilters();renderTracks();NovaOffline.render();void loadArtistProfiles();
  void loadCommunityData();
 }
 
@@ -763,6 +765,7 @@ async function checkMemberAccess(session){
   if(!response.ok)throw new Error(result.error||"Tu cuenta está pendiente de aprobación.");
   memberApproved=true;
   downloadsAllowed=Boolean(result.downloads_allowed||result.admin);
+  try{localStorage.setItem("nova_offline_access_"+session.user.id,JSON.stringify({approved:true,downloadsAllowed,validatedAt:Date.now()}));}catch(error){console.warn("NOVA offline access cache:",error.message);}
   const loginLogKey="nova_login_logged_"+session.user.id;
   if(!sessionStorage.getItem(loginLogKey)){
    fetch("https://nova-mega-server.onrender.com/member-login-event",{
@@ -776,10 +779,34 @@ async function checkMemberAccess(session){
   await loadTracks();
   return true;
  }catch(error){
+  if(!navigator.onLine){
+   try{
+    const cached=JSON.parse(localStorage.getItem("nova_offline_access_"+session.user.id)||"null");
+    const savedTracks=JSON.parse(localStorage.getItem("nova_offline_catalog_"+session.user.id)||"[]");
+    const validLease=cached?.approved&&Date.now()-Number(cached.validatedAt)<7*24*60*60*1000;
+    if(validLease&&Array.isArray(savedTracks)&&savedTracks.length){
+     memberApproved=true;
+     downloadsAllowed=Boolean(cached.downloadsAllowed);
+     tracks=savedTracks;
+     NovaOffline.setTracks(tracks);
+     document.body.classList.remove("access-locked");
+     $("memberGate").classList.add("hidden");
+     renderLibraryFilters();
+     renderTracks();
+     NovaOffline.render();
+     $("memberGateMessage").textContent="Modo sin conexión: acceso temporal con la última verificación guardada. Conéctate para actualizar permisos.";
+     return true;
+    }
+   }catch(cacheError){console.warn("NOVA offline access:",cacheError.message);}
+  }
   lockMemberArea(error.message);
   return false;
  }
 }
+
+window.addEventListener("online",()=>{
+ if(currentSession&&!adminVerified)void checkMemberAccess(currentSession);
+});
 
 let memberDirectory = [];
 let memberFilter = "pending";
