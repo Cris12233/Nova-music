@@ -24,7 +24,15 @@ create policy "Approved members can submit own security alerts"
 on public.nova_security_alerts for insert to authenticated
 with check (
   user_id = auth.uid()
-  and public.is_nova_member_approved()
+  and (
+    public.is_nova_admin()
+    or exists (
+      select 1
+      from public.user_access ua
+      where ua.user_id = auth.uid()
+        and ua.status = 'approved'
+    )
+  )
 );
 
 drop policy if exists "Admins read security alerts" on public.nova_security_alerts;
