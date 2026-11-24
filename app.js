@@ -92,10 +92,16 @@ async function registerNovaDevice(session){
  novaDeviceHeartbeat=setInterval(async()=>{
   if(!currentSession||currentSession.user.id!==session.user.id)return;
   const {data:alive,error:heartbeatError}=await supabase.rpc("nova_touch_device",{p_device_id:getNovaDeviceId()});
-  if(heartbeatError||alive!==true){
+  // Safari en iPhone puede suspender pestañas y reanudar la conexión tarde.
+  // Un error temporal de red no significa que el dispositivo haya sido revocado.
+  if(heartbeatError){
+   console.warn("NOVA device heartbeat:",heartbeatError.message);
+   return;
+  }
+  if(alive===false){
    clearInterval(novaDeviceHeartbeat);
    novaDeviceHeartbeat=null;
-   lockMemberArea("No se pudo renovar la sesión de este dispositivo. Vuelve a iniciar sesión.");
+   lockMemberArea("Este dispositivo ya no tiene una sesión activa. Vuelve a iniciar sesión.");
   }
  },60000);
  return {ok:true};
@@ -746,39 +752,68 @@ function lockMemberArea(message){
  $("memberLogoutBtn").classList.toggle("hidden",!currentSession);
 }
 
-async function checkMemberAccess(session){
- currentSession=session||null;
+let memberAccessCheckPromise=null;
+let memberAccessCheckUserId=null;
+let memberAccessCheckGeneration=0;
+
+function checkMemberAccess(session){
  if(!session){
+  memberAccessCheckGeneration++;
+  memberAccessCheckPromise=null;
+  memberAccessCheckUserId=null;
+  currentSession=null;
   lockMemberArea("Inicia sesión o solicita acceso para entrar a NOVA MUSIC.");
-  return false;
+  return Promise.resolve(false);
  }
+ if(memberAccessCheckPromise&&memberAccessCheckUserId===session.user.id){
+  currentSession=session;
+  return memberAccessCheckPromise;
+ }
+
+ const generation=++memberAccessCheckGeneration;
+ currentSession=session;
+ memberAccessCheckUserId=session.user.id;
  $("memberGateMessage").textContent="Verificando tu dispositivo y tu acceso…";
- try{
-  const deviceCheck=await registerNovaDevice(session);
-  if(!deviceCheck.ok)throw new Error(deviceCheck.message);
-  const response=await fetch("https://nova-mega-server.onrender.com/member-status",{
-   headers:{Authorization:`Bearer ${session.access_token}`}
-  });
-  const result=await response.json();
-  if(!response.ok)throw new Error(result.error||"Tu cuenta está pendiente de aprobación.");
-  memberApproved=true;
-  downloadsAllowed=Boolean(result.downloads_allowed||result.admin);
-  const loginLogKey="nova_login_logged_"+session.user.id;
-  if(!sessionStorage.getItem(loginLogKey)){
-   fetch("https://nova-mega-server.onrender.com/member-login-event",{
-    method:"POST",
-    headers:{Authorization:`Bearer ${session.access_token}`,"Content-Type":"application/json"},
-    body:JSON.stringify({device_id:getNovaDeviceId(),device_label:(navigator.userAgent||"Dispositivo").slice(0,120)})
-   }).then(response=>{if(response.ok)sessionStorage.setItem(loginLogKey,"1");}).catch(error=>console.warn("NOVA login history:",error.message));
+
+ const task=(async()=>{
+  try{
+   const deviceCheck=await registerNovaDevice(session);
+   if(generation!==memberAccessCheckGeneration)return false;
+   if(!deviceCheck.ok)throw new Error(deviceCheck.message);
+   const response=await fetch("https://nova-mega-server.onrender.com/member-status",{
+    headers:{Authorization:`Bearer ${session.access_token}`}
+   });
+   if(generation!==memberAccessCheckGeneration)return false;
+   const result=await response.json();
+   if(!response.ok)throw new Error(result.error||"Tu cuenta está pendiente de aprobación.");
+   memberApproved=true;
+   downloadsAllowed=Boolean(result.downloads_allowed||result.admin);
+   const loginLogKey="nova_login_logged_"+session.user.id;
+   if(!sessionStorage.getItem(loginLogKey)){
+    fetch("https://nova-mega-server.onrender.com/member-login-event",{
+     method:"POST",
+     headers:{Authorization:`Bearer ${session.access_token}`,"Content-Type":"application/json"},
+     body:JSON.stringify({device_id:getNovaDeviceId(),device_label:(navigator.userAgent||"Dispositivo").slice(0,120)})
+    }).then(response=>{if(response.ok)sessionStorage.setItem(loginLogKey,"1");}).catch(error=>console.warn("NOVA login history:",error.message));
+   }
+   document.body.classList.remove("access-locked");
+   $("memberGate").classList.add("hidden");
+   await loadTracks();
+   return true;
+  }catch(error){
+   if(generation===memberAccessCheckGeneration)lockMemberArea(error.message);
+   return false;
   }
-  document.body.classList.remove("access-locked");
-  $("memberGate").classList.add("hidden");
-  await loadTracks();
-  return true;
- }catch(error){
-  lockMemberArea(error.message);
-  return false;
- }
+ })();
+
+ memberAccessCheckPromise=task;
+ task.finally(()=>{
+  if(memberAccessCheckPromise===task){
+   memberAccessCheckPromise=null;
+   memberAccessCheckUserId=null;
+  }
+ });
+ return task;
 }
 
 let memberDirectory = [];
@@ -1282,12 +1317,15 @@ function addTrackToPlaylist(i){
 renderPlaylists();
 lockMemberArea("Inicia sesión o solicita acceso para entrar a NOVA MUSIC.");
 if(supabase){
- supabase.auth.onAuthStateChange((_event,session)=>{
+ supabase.auth.onAuthStateChange((event,session)=>{
   showSession(session);
+  // El refresco normal del token no debe volver a registrar el dispositivo
+  // ni reiniciar la validación completa de acceso.
+  if(event==="TOKEN_REFRESHED"){
+   currentSession=session||null;
+   return;
+  }
   setTimeout(()=>{void checkMemberAccess(session);},0);
- });
- supabase.auth.getSession().then(({data})=>{
-  if(data.session)checkMemberAccess(data.session);
  });
 }
 // NOVA MUSIC: contador previo de canciones
@@ -1428,15 +1466,17 @@ novaNavItems.forEach((item,index)=>{
       return;
     }
 
-    history.replaceState(null,"",href);
+    // Evita que Safari iOS trate el fragmento (#favoritesSection) como
+    // una navegación propia y provoque saltos o restauraciones de scroll.
+    // La navegación se controla únicamente mediante desplazamiento interno.
+    history.replaceState(null,"",window.location.pathname+window.location.search);
     const topbar=document.querySelector(".topbar");
     const offset=(topbar?.getBoundingClientRect().height||0)+12;
     const top=Math.max(0,window.scrollY+target.getBoundingClientRect().top-offset);
 
-    window.scrollTo({
-      top,
-      behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"
-    });
+    // El desplazamiento instantáneo es más estable en Safari móvil;
+    // evita que el observador cambie de sección durante una animación.
+    window.scrollTo({top,behavior:"auto"});
   });
 });
 /* NOVA MUSIC - Sincronización del reproductor expandido */
