@@ -1,6 +1,12 @@
 name: iOS WebKit smoke tests
 
 on:
+  push:
+    branches: [fix/ios-favorites-navigation]
+    paths:
+      - "app.js"
+      - "tests/ios-webkit-smoke.mjs"
+      - ".github/workflows/ios-webkit-smoke.yml"
   pull_request:
     branches: [main]
     paths:
