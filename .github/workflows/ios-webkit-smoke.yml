@@ -32,6 +32,6 @@ jobs:
       - name: Install Playwright
         run: npm install --no-save playwright
       - name: Install WebKit browser
-        run: npx playwright install --with-deps webkit
+        run: npx playwright install webkit
       - name: Test mobile navigation and session safeguards
         run: node tests/ios-webkit-smoke.mjs
