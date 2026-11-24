@@ -4,7 +4,7 @@ import { readAudioMetadata } from "./audio-metadata.js";
 
 const configured = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("PEGA_AQUI") && SUPABASE_ANON_KEY.length > 30 && !SUPABASE_ANON_KEY.includes("PEGA_AQUI");
 const supabase = configured ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, storage: window.localStorage } }) : null;
-const NOVA_API_BASE = "https://nova-mega-server.onrender.com";
+const NOVA_API_BASE = "https://nova-mega-server.ethiodeploy.app";
 const $ = id => document.getElementById(id);
 const audio = $("audio");
 audio.preload = "auto";
@@ -464,7 +464,7 @@ async function loadAdminLoginHistory(session=currentSession){
  const list=$("adminLoginHistoryList");if(!list||!session)return;
  list.innerHTML='<p class="muted-text">Cargando accesos…</p>';
  try{
-  const response=await fetch("https://nova-mega-server.onrender.com/admin/login-history",{headers:{Authorization:"Bearer "+session.access_token}});
+  const response=await fetch("https://nova-mega-server.ethiodeploy.app/admin/login-history",{headers:{Authorization:"Bearer "+session.access_token}});
   const result=await response.json();
   if(!response.ok)throw new Error(result.error||"No se pudo consultar el historial.");
   const entries=result.entries||[],since=Date.now()-24*60*60*1000,deviceCounts={};
@@ -484,7 +484,7 @@ async function loadAdminAudit(session=currentSession){
  const list=$("adminAuditList");if(!list||!session)return;
  list.innerHTML='<p class="muted-text">Cargando actividad…</p>';
  try{
-  const response=await fetch("https://nova-mega-server.onrender.com/admin/audit-log",{headers:{Authorization:"Bearer "+session.access_token}});
+  const response=await fetch("https://nova-mega-server.ethiodeploy.app/admin/audit-log",{headers:{Authorization:"Bearer "+session.access_token}});
   const result=await response.json();
   if(!response.ok)throw new Error(result.error||"No se pudo consultar la bitácora.");
   const entries=result.entries||[];
@@ -548,11 +548,11 @@ $("refreshAdminInsights")?.addEventListener("click",()=>loadAdminInsights());
 function escapeHtml(s=""){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function escapeAttr(s=""){return escapeHtml(s)}
 function memberAudioUrl(endpoint,id,ticket){
- return `https://nova-mega-server.onrender.com/${endpoint}?id=${encodeURIComponent(id)}&ticket=${encodeURIComponent(ticket)}`;
+ return `https://nova-mega-server.ethiodeploy.app/${endpoint}?id=${encodeURIComponent(id)}&ticket=${encodeURIComponent(ticket)}`;
 }
 async function requestPlaybackTicket(){
  if(!currentSession?.access_token)throw new Error("Inicia sesión para reproducir o descargar.");
- const response=await fetch("https://nova-mega-server.onrender.com/playback-ticket",{
+ const response=await fetch("https://nova-mega-server.ethiodeploy.app/playback-ticket",{
   method:"POST",
   headers:{Authorization:`Bearer ${currentSession.access_token}`}
  });
@@ -655,7 +655,7 @@ async function deleteSong(songId){
  if(!song)return;
  if(!window.confirm(`¿Eliminar “${song.title}” de NOVA MUSIC? Su archivo se enviará a la papelera de MEGA y se quitará de la biblioteca.`))return;
  try{
-  const response=await fetch(`https://nova-mega-server.onrender.com/admin/songs/${encodeURIComponent(songId)}`,{
+  const response=await fetch(`https://nova-mega-server.ethiodeploy.app/admin/songs/${encodeURIComponent(songId)}`,{
    method:"DELETE",
    headers:{Authorization:`Bearer ${currentSession.access_token}`}
   });
@@ -730,7 +730,7 @@ function showSession(session){
 async function checkMegaStatus(session){
  $("adminMessage").textContent="Comprobando permisos de administrador…";
  try{
-  const response=await fetch("https://nova-mega-server.onrender.com/mega-status",{
+  const response=await fetch("https://nova-mega-server.ethiodeploy.app/mega-status",{
    headers:{Authorization:`Bearer ${session.access_token}`}
   });
   const result=await response.json();
@@ -803,7 +803,7 @@ function checkMemberAccess(session){
    if(!deviceCheck.ok)throw new Error(deviceCheck.message);
    let response;
    try{
-    response=await novaRetryNetworkRequest(()=>fetch("https://nova-mega-server.onrender.com/member-status",{
+    response=await novaRetryNetworkRequest(()=>fetch("https://nova-mega-server.ethiodeploy.app/member-status",{
      headers:{Authorization:`Bearer ${session.access_token}`}
     }));
    }catch(networkError){
@@ -816,7 +816,7 @@ function checkMemberAccess(session){
    downloadsAllowed=Boolean(result.downloads_allowed||result.admin);
    const loginLogKey="nova_login_logged_"+session.user.id;
    if(!sessionStorage.getItem(loginLogKey)){
-    fetch("https://nova-mega-server.onrender.com/member-login-event",{
+    fetch("https://nova-mega-server.ethiodeploy.app/member-login-event",{
      method:"POST",
      headers:{Authorization:`Bearer ${session.access_token}`,"Content-Type":"application/json"},
      body:JSON.stringify({device_id:getNovaDeviceId(),device_label:(navigator.userAgent||"Dispositivo").slice(0,120)})
@@ -897,7 +897,7 @@ async function updateMemberDownloadPermission(userId,allowed){
  const session=currentSession;
  if(!session)return;
  try{
-  const response=await fetch(`https://nova-mega-server.onrender.com/admin/members/${encodeURIComponent(userId)}/download-permission`,{
+  const response=await fetch(`https://nova-mega-server.ethiodeploy.app/admin/members/${encodeURIComponent(userId)}/download-permission`,{
    method:"PATCH",
    headers:{Authorization:`Bearer ${session.access_token}`,"Content-Type":"application/json"},
    body:JSON.stringify({allowed})
@@ -918,7 +918,7 @@ async function refreshMembers(session=currentSession){
  panel.classList.remove("hidden");
  list.innerHTML='<p class="muted-text">Cargando usuarios…</p>';
  try{
-  const response=await fetch("https://nova-mega-server.onrender.com/admin/members",{
+  const response=await fetch("https://nova-mega-server.ethiodeploy.app/admin/members",{
    headers:{Authorization:`Bearer ${session.access_token}`}
   });
   const result=await response.json();
@@ -934,7 +934,7 @@ async function loadMemberDevices(userId,target){
  if(!currentSession||!target)return;
  target.textContent="Consultando dispositivos…";
  try{
-  const response=await fetch(`https://nova-mega-server.onrender.com/admin/members/${encodeURIComponent(userId)}/devices`,{
+  const response=await fetch(`https://nova-mega-server.ethiodeploy.app/admin/members/${encodeURIComponent(userId)}/devices`,{
    headers:{Authorization:`Bearer ${currentSession.access_token}`}
   });
   const result=await response.json();
@@ -950,7 +950,7 @@ async function loadMemberDevices(userId,target){
    if(!confirm("¿Revocar este dispositivo? Se cerrará el acceso en él cuando renueve su sesión."))return;
    button.disabled=true;
    try{
-    const revoke=await fetch(`https://nova-mega-server.onrender.com/admin/members/${encodeURIComponent(userId)}/devices/${encodeURIComponent(button.dataset.revokeDevice)}/revoke`,{
+    const revoke=await fetch(`https://nova-mega-server.ethiodeploy.app/admin/members/${encodeURIComponent(userId)}/devices/${encodeURIComponent(button.dataset.revokeDevice)}/revoke`,{
      method:"POST",headers:{Authorization:`Bearer ${currentSession.access_token}`}
     });
     const result=await revoke.json();
@@ -965,7 +965,7 @@ async function updateMemberStatus(userId,status){
  const session=currentSession;
  if(!session)return;
  try{
-  const response=await fetch(`https://nova-mega-server.onrender.com/admin/members/${encodeURIComponent(userId)}`,{
+  const response=await fetch(`https://nova-mega-server.ethiodeploy.app/admin/members/${encodeURIComponent(userId)}`,{
    method:"PATCH",
    headers:{
     Authorization:`Bearer ${session.access_token}`,
@@ -1281,7 +1281,7 @@ $("bulkUploadBtn").onclick=async()=>{
    }
 
    const megaResponse=await fetch(
-    "https://nova-mega-server.onrender.com/upload",
+    "https://nova-mega-server.ethiodeploy.app/upload",
     {
      method:"POST",
      headers:{
