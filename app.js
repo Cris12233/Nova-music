@@ -249,7 +249,7 @@ function renderFavorites(){
   grid.innerHTML=favorites.map(track=>{
     const index=tracks.indexOf(track);
     const cover=track.cover_url?`background-image:url(\'${escapeAttr(track.cover_url)}\')`:"";
-    const subtitle=[track.artist||"Artista independiente",track.album].filter(Boolean).join(" · ");
+    const subtitle=[track.artist||"Artista desconocido",track.album].filter(Boolean).join(" · ");
     return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${track.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${index}">▶</button></div><div class="track-info"><b>${escapeHtml(track.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(track.id)}">❤️ Quitar favorito</button><button data-play="${index}">▶ Escuchar</button>${downloadsAllowed?'<a href="#" data-download="'+escapeAttr(track.id)+'">↓ Descargar</a>':'<button type="button" class="download-locked" disabled title="El administrador todavía no ha autorizado las descargas">🔒 Descarga no autorizada</button>'}<button data-queue="${index}">＋ Cola</button>${adminVerified?`<button class="admin-delete-song" data-delete-song="${escapeAttr(track.id)}">🗑 Eliminar</button>`:""}</div></div></article>`;
   }).join("");
 
@@ -286,7 +286,7 @@ function renderRecommendations(){
  if(!candidates.length){grid.innerHTML='<p class="muted-text">Ya exploraste toda la colección. Pronto habrá más descubrimientos.</p>';return;}
  grid.innerHTML=candidates.map(track=>{
   const index=tracks.indexOf(track),cover=track.cover_url?'background-image:url(\''+escapeAttr(track.cover_url)+'\')':"";
-  return '<article class="track-card"><div class="cover" style="'+cover+'"><span class="cover-symbol" '+(track.cover_url?'style="display:none"':"")+' >♫</span><button class="card-play" data-recommend-play="'+index+'">▶</button></div><div class="track-info"><b>'+escapeHtml(track.title)+'</b><span>'+escapeHtml([track.artist||"Artista independiente",track.album].filter(Boolean).join(" · "))+'</span><div class="track-actions"><button data-recommend-play="'+index+'">▶ Escuchar</button><button data-recommend-favorite="'+escapeAttr(track.id)+'">♡ Favorito</button></div></div></article>';
+  return '<article class="track-card"><div class="cover" style="'+cover+'"><span class="cover-symbol" '+(track.cover_url?'style="display:none"':"")+' >♫</span><button class="card-play" data-recommend-play="'+index+'">▶</button></div><div class="track-info"><b>'+escapeHtml(track.title)+'</b><span>'+escapeHtml([track.artist||"Artista desconocido",track.album].filter(Boolean).join(" · "))+'</span><div class="track-actions"><button data-recommend-play="'+index+'">▶ Escuchar</button><button data-recommend-favorite="'+escapeAttr(track.id)+'">♡ Favorito</button></div></div></article>';
  }).join("");
  grid.querySelectorAll("[data-recommend-play]").forEach(button=>button.onclick=()=>playTrack(Number(button.dataset.recommendPlay)));
  grid.querySelectorAll("[data-recommend-favorite]").forEach(button=>button.onclick=()=>toggleFavorite(button.dataset.recommendFavorite));
@@ -347,7 +347,7 @@ function renderTracks(){
  $("trackCount").textContent=tracks.length;
  $("trackGrid").innerHTML=shown.length?shown.map(t=>{
   const idx=tracks.indexOf(t), cover=t.cover_url?`background-image:url('${escapeAttr(t.cover_url)}')`:"";
-  const subtitle=[t.artist||"Artista independiente",t.album].filter(Boolean).join(" · ");
+  const subtitle=[t.artist||"Artista desconocido",t.album].filter(Boolean).join(" · ");
   
 
 return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${t.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${idx}">▶</button></div><div class="track-info"><b>${escapeHtml(t.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(t.id)}">${favoriteTracks.includes(t.id)?"❤️":"🤍"} Favorito</button><button data-play="${idx}">▶ Escuchar</button>${downloadsAllowed?'<a href="#" data-download="'+escapeAttr(t.id)+'">↓ Descargar</a>':'<button type="button" class="download-locked" disabled title="El administrador todavía no ha autorizado las descargas">🔒 Descarga no autorizada</button>'}<button data-add="${idx}">＋ Playlist</button><button data-queue="${idx}">＋ Cola</button><button data-comments="${escapeAttr(t.id)}">💬 Comentarios</button><button data-report="${escapeAttr(t.id)}">⚑ Reportar</button>${adminVerified?`<button class="admin-delete-song" data-delete-song="${escapeAttr(t.id)}">🗑 Eliminar</button>`:""}</div></div></article>`;
@@ -387,7 +387,7 @@ function renderHistory(){
  const grid=$("historyGrid");if(!grid)return;
  const entries=historyEntries.filter(item=>item.song);
  if(!entries.length){grid.innerHTML='<p class="muted-text">Tus canciones escuchadas aparecerán aquí.</p>';return;}
- grid.innerHTML=entries.map(item=>'<article class="community-history-item"><div><b>'+escapeHtml(item.song.title)+'</b><span>'+escapeHtml(item.song.artist||"Artista independiente")+'</span><small>Continuar desde '+time(Number(item.progress_seconds)||0)+'</small></div><button class="outline-btn" data-history-play="'+escapeAttr(item.song.id)+'" data-progress="'+Number(item.progress_seconds||0)+'">▶ Continuar</button></article>').join("");
+ grid.innerHTML=entries.map(item=>'<article class="community-history-item"><div><b>'+escapeHtml(item.song.title)+'</b><span>'+escapeHtml(item.song.artist||"Artista desconocido")+'</span><small>Continuar desde '+time(Number(item.progress_seconds)||0)+'</small></div><button class="outline-btn" data-history-play="'+escapeAttr(item.song.id)+'" data-progress="'+Number(item.progress_seconds||0)+'">▶ Continuar</button></article>').join("");
  grid.querySelectorAll("[data-history-play]").forEach(button=>button.onclick=()=>{const index=tracks.findIndex(t=>t.id===button.dataset.historyPlay);if(index<0)return toast("Esta canción ya no está disponible.");pendingResumeSeconds=Number(button.dataset.progress)||0;playTrack(index);});
 }
 function renderNotifications(items){
@@ -590,7 +590,7 @@ queueIndex=queuePosition;
  }).catch(error=>toast(error.message||"No se pudo reproducir el audio."));
 
  $("nowTitle").textContent=t.title;
- $("nowArtist").textContent=t.artist||"Artista independiente";
+ $("nowArtist").textContent=t.artist||"Artista desconocido";
  $("nowCover").textContent="♫";
  $("nowCover").style.backgroundImage=t.cover_url?`url("${t.cover_url}")`:"";
  $("playBtn").textContent="Ⅱ";
@@ -1073,7 +1073,12 @@ $("logoutBtn").onclick=async()=>{
 
 const audioTypes = new Set(["audio/mpeg","audio/mp3","audio/wav","audio/x-wav","audio/mp4","audio/aac","audio/ogg","audio/flac"]);
 function safeName(name){return name.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9._-]/g,"_")}
-function titleFromFile(name){return name.replace(/\.[^.]+$/," ").replace(/[._-]+/g," ").trim()}
+function titleFromFile(name){
+ let title=name.replace(/\.[^.]+$/," ").replace(/[._-]+/g," ").trim();
+ title=title.replace(/^(?:(?:audio|nota de voz|voice message)\s+de\s+)?(?:whatsapp|telegram)(?:\s+(?:audio|ptt|voice message|nota de voz))?\s*[-–—_:]*\s*/i,"").trim();
+ title=title.replace(/^(?:audio|nota de voz|voice message)\s+(?:whatsapp|telegram)\s*[-–—_:]*\s*/i,"").trim();
+ return title||"Audio sin título";
+}
 function setBulkSummary(message){$("bulkSummary").textContent=message}
 function drawQueue(items){
  $("bulkQueue").innerHTML=items.map((item,i)=>`<div class="queue-row" id="queue-${i}"><span class="queue-name">${escapeHtml(item.file.name)}</span><span class="queue-status pending">En espera</span></div>`).join("");
@@ -1103,7 +1108,7 @@ function metadataForItem(item){
  const saved=bulkMetadataByFile.get(item.file)||{};
  return {
   title:saved.title||titleFromFile(item.file.name),
-  artist:saved.artistEdited?saved.artist:(saved.artist||$("bulkArtist").value.trim()||"Artista independiente"),
+  artist:saved.artistEdited?saved.artist:(saved.artist||$("bulkArtist").value.trim()||"Artista desconocido"),
   album:saved.albumEdited?saved.album:($("bulkAlbum").value.trim()||saved.album||folderAlbumForItem(item)||null)
  };
 }
@@ -1224,7 +1229,7 @@ $("bulkUploadBtn").onclick=async()=>{
 
  for(const item of valid){
   const metadata=metadataForItem(item);
-  const key=normalize(metadata.title)+"|"+normalize(metadata.artist||"Artista independiente");
+  const key=normalize(metadata.title)+"|"+normalize(metadata.artist||"Artista desconocido");
 
   if(seen.has(key)){
    duplicates++;
@@ -1304,7 +1309,7 @@ $("bulkUploadBtn").onclick=async()=>{
 
    const {error}=await supabase.from("songs").insert({
     title:metadata.title,
-    artist:metadata.artist||"Artista independiente",
+    artist:metadata.artist||"Artista desconocido",
     album,
     audio_url:audioUrl,
     audio_path:audioPath,
@@ -1437,7 +1442,7 @@ async function updateBulkPrecheck(){
 
  for(const item of eligible){
   const metadata=metadataForItem(item);
-  const key=normalizeNOVA(metadata.title)+"|"+normalizeNOVA(metadata.artist||"Artista independiente");
+  const key=normalizeNOVA(metadata.title)+"|"+normalizeNOVA(metadata.artist||"Artista desconocido");
 
   if(seen.has(key)){
    duplicates++;
