@@ -1428,15 +1428,17 @@ novaNavItems.forEach((item,index)=>{
       return;
     }
 
-    history.replaceState(null,"",href);
+    // Evita que Safari iOS trate el fragmento (#favoritesSection) como
+    // una navegación propia y provoque saltos o restauraciones de scroll.
+    // La navegación se controla únicamente mediante desplazamiento interno.
+    history.replaceState(null,"",window.location.pathname+window.location.search);
     const topbar=document.querySelector(".topbar");
     const offset=(topbar?.getBoundingClientRect().height||0)+12;
     const top=Math.max(0,window.scrollY+target.getBoundingClientRect().top-offset);
 
-    window.scrollTo({
-      top,
-      behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"
-    });
+    // El desplazamiento instantáneo es más estable en Safari móvil;
+    // evita que el observador cambie de sección durante una animación.
+    window.scrollTo({top,behavior:"auto"});
   });
 });
 /* NOVA MUSIC - Sincronización del reproductor expandido */
