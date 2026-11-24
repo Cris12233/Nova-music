@@ -74,10 +74,10 @@ function getNovaDeviceId(){
 
 async function registerNovaDevice(session){
  if(!supabase||!session)return {ok:false,message:"No se pudo verificar el dispositivo."};
- const {data,error}=await supabase.rpc("nova_register_device",{
+ const {data,error}=await novaRetryNetworkRequest(()=>supabase.rpc("nova_register_device",{
   p_device_id:getNovaDeviceId(),
   p_device_label:(navigator.userAgent||"Dispositivo").slice(0,120)
- });
+ }));
  if(error)throw new Error("No se pudo comprobar el límite de dispositivos. Inténtalo de nuevo.");
  if(!data?.ok){
   if(data?.reason==="device_limit_exceeded"){
@@ -145,6 +145,27 @@ function getNextQueueIndex(){
   }
 
  return queueIndex+1;
+}
+async function novaRetryNetworkRequest(request,attempts=2){
+ let lastError;
+ for(let attempt=1;attempt<=attempts;attempt++){
+  try{
+   const result=await request();
+   const message=result?.error?.message||"";
+   if(result?.error&&/network|fetch|load failed|connection/i.test(message)&&attempt<attempts){
+    await new Promise(resolve=>setTimeout(resolve,900*attempt));
+    continue;
+   }
+   return result;
+  }catch(error){
+   lastError=error;
+   const message=error?.message||"";
+   if(!/network|fetch|load failed|connection/i.test(message)||attempt===attempts)throw error;
+   await new Promise(resolve=>setTimeout(resolve,900*attempt));
+  }
+ }
+ if(lastError)throw lastError;
+ throw new Error("No se pudo completar la petición de red.");
 }
 function toast(msg){$("toast").textContent=msg;$("toast").classList.add("show");setTimeout(()=>$("toast").classList.remove("show"),2400)}
 function time(s){if(!Number.isFinite(s))return "0:00";return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,"0")}`}
@@ -780,9 +801,14 @@ function checkMemberAccess(session){
    const deviceCheck=await registerNovaDevice(session);
    if(generation!==memberAccessCheckGeneration)return false;
    if(!deviceCheck.ok)throw new Error(deviceCheck.message);
-   const response=await fetch("https://nova-mega-server.onrender.com/member-status",{
-    headers:{Authorization:`Bearer ${session.access_token}`}
-   });
+   let response;
+   try{
+    response=await novaRetryNetworkRequest(()=>fetch("https://nova-mega-server.onrender.com/member-status",{
+     headers:{Authorization:`Bearer ${session.access_token}`}
+    }));
+   }catch(networkError){
+    throw new Error("No se pudo conectar con el servidor de acceso de NOVA MUSIC. Espera unos segundos y vuelve a intentarlo.");
+   }
    if(generation!==memberAccessCheckGeneration)return false;
    const result=await response.json();
    if(!response.ok)throw new Error(result.error||"Tu cuenta está pendiente de aprobación.");
@@ -959,14 +985,31 @@ async function updateMemberStatus(userId,status){
 $("refreshMembersBtn").onclick=()=>refreshMembers();
 
 $("memberLoginBtn").onclick=async()=>{
+ const button=$("memberLoginBtn");
  if(!supabase)return $("memberGateMessage").textContent="Supabase no está configurado.";
- $("memberGateMessage").textContent="Iniciando sesión…";
- const {data,error}=await supabase.auth.signInWithPassword({
-  email:$("memberLoginEmail").value.trim(),
-  password:$("memberLoginPassword").value
- });
- if(error){$("memberGateMessage").textContent=error.message;return}
- await checkMemberAccess(data.session);
+ if(button)button.disabled=true;
+ $("memberGateMessage").textContent="Conectando e iniciando sesión…";
+ try{
+  const {data,error}=await novaRetryNetworkRequest(()=>supabase.auth.signInWithPassword({
+   email:$("memberLoginEmail").value.trim(),
+   password:$("memberLoginPassword").value
+  }));
+  if(error){
+   const networkError=/network|fetch|load failed|connection/i.test(error.message||"");
+   $("memberGateMessage").textContent=networkError
+    ?"No se pudo conectar con el servicio de inicio de sesión. Comprueba tu conexión e inténtalo de nuevo."
+    :error.message;
+   return;
+  }
+  await checkMemberAccess(data.session);
+ }catch(error){
+  const message=error?.message||"Error desconocido";
+  $("memberGateMessage").textContent=/network|fetch|load failed|connection/i.test(message)
+   ?"No se pudo establecer conexión para iniciar sesión. Inténtalo de nuevo en unos segundos."
+   :message;
+ }finally{
+  if(button)button.disabled=false;
+ }
 };
 
 $("memberRefreshBtn").onclick=async()=>{
