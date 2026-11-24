@@ -801,19 +801,24 @@ function checkMemberAccess(session){
    const deviceCheck=await registerNovaDevice(session);
    if(generation!==memberAccessCheckGeneration)return false;
    if(!deviceCheck.ok)throw new Error(deviceCheck.message);
-   let response;
-   try{
-    response=await novaRetryNetworkRequest(()=>fetch("https://nova-mega-server.onrender.com/member-status",{
-     headers:{Authorization:`Bearer ${session.access_token}`}
-    }));
-   }catch(networkError){
-    throw new Error("No se pudo conectar con el servidor de acceso de NOVA MUSIC. Espera unos segundos y vuelve a intentarlo.");
-   }
+   // La aprobación y el permiso de descarga se consultan directamente en Supabase.
+   // Así el inicio de sesión no depende de la disponibilidad ni del ancho de banda de Render.
+   const [{data:adminResult,error:adminError},{data:accessRow,error:accessError}]=await Promise.all([
+    supabase.rpc("is_nova_admin"),
+    supabase.from("user_access").select("status,download_enabled").eq("user_id",session.user.id).maybeSingle()
+   ]);
    if(generation!==memberAccessCheckGeneration)return false;
-   const result=await response.json();
-   if(!response.ok)throw new Error(result.error||"Tu cuenta está pendiente de aprobación.");
+   if(adminError)throw new Error("No se pudo verificar el rol de la cuenta. Inténtalo de nuevo.");
+   const isAdmin=adminResult===true;
+   if(!isAdmin){
+    if(accessError)throw new Error("No se pudo consultar la aprobación de tu cuenta. Inténtalo de nuevo.");
+    if(!accessRow||accessRow.status!=="approved"){
+     const status=accessRow?.status;
+     throw new Error(status==="suspended"?"Tu cuenta está suspendida.":status==="rejected"?"Tu solicitud de acceso fue rechazada.":"Tu cuenta está pendiente de aprobación.");
+    }
+   }
    memberApproved=true;
-   downloadsAllowed=Boolean(result.downloads_allowed||result.admin);
+   downloadsAllowed=Boolean(isAdmin||accessRow?.download_enabled===true);
    const loginLogKey="nova_login_logged_"+session.user.id;
    if(!sessionStorage.getItem(loginLogKey)){
     fetch("https://nova-mega-server.onrender.com/member-login-event",{
