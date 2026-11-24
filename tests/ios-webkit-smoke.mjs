@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { chromium } from "playwright";
+import { webkit } from "playwright";
 
 const source = fs.readFileSync("app.js", "utf8");
 const start = source.indexOf("/* NOVA MUSIC - Navegación activa automática */");
@@ -12,7 +12,7 @@ assert(source.includes('if(event==="TOKEN_REFRESHED")'), "Falta evitar la revali
 assert(source.includes('if(heartbeatError){'), "Falta tratar los errores temporales del heartbeat");
 assert(source.includes('if(alive===false){'), "Debe bloquearse el acceso si el servidor confirma que el dispositivo ya no está activo");
 
-const browser = await chromium.launch({ headless: true });
+const browser = await webkit.launch({ headless: true });
 try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   await page.setContent(`
