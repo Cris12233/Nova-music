@@ -786,6 +786,12 @@ function checkMemberAccess(session){
   lockMemberArea("Inicia sesión o solicita acceso para entrar a NOVA MUSIC.");
   return Promise.resolve(false);
  }
+ // Evita repetir el registro del dispositivo y volver a descargar/renderizar
+ // toda la biblioteca cuando Safari/iOS emite eventos de sesión duplicados.
+ if(memberApproved&&currentSession?.user?.id===session.user.id){
+  currentSession=session;
+  return Promise.resolve(true);
+ }
  if(memberAccessCheckPromise&&memberAccessCheckUserId===session.user.id){
   currentSession=session;
   return memberAccessCheckPromise;
