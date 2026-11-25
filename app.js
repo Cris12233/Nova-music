@@ -48,9 +48,12 @@ audio.addEventListener("ended",()=>{
  if(trackIndex!==-1)playTrack(trackIndex);
 });
 let tracks = [], currentIndex = -1, playlists = JSON.parse(localStorage.getItem("nova_playlists") || "[]");
-// Renderizado progresivo para evitar que Safari/iOS se quede sin memoria con bibliotecas grandes.
-let libraryVisibleCount=30;
-let artistVisibleCount=40;
+// La carga progresiva se limita a iPhone/iPad; Android y escritorio conservan la biblioteca completa.
+const novaIsIOS=/iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+const libraryPageSize=novaIsIOS?30:Number.MAX_SAFE_INTEGER;
+const artistPageSize=novaIsIOS?40:Number.MAX_SAFE_INTEGER;
+let libraryVisibleCount=libraryPageSize;
+let artistVisibleCount=artistPageSize;
 let currentSession = null;
 let memberApproved = false;
 let downloadsAllowed = false;
@@ -269,7 +272,7 @@ function renderLibraryFilters(){
   const previous=select.value;
   select.innerHTML='<option value="">'+placeholder+'</option>'+values.map(value=>'<option value="'+escapeAttr(value)+'">'+escapeHtml(value)+'</option>').join("");
   select.value=values.includes(previous)?previous:"";
-  if(!select.dataset.bound){select.addEventListener("change",()=>{libraryVisibleCount=30;renderTracks();});select.dataset.bound="1";}
+  if(!select.dataset.bound){select.addEventListener("change",()=>{libraryVisibleCount=libraryPageSize;renderTracks();});select.dataset.bound="1";}
  };
  fill("artistFilter",unique("artist"),"Todos los artistas");
  fill("albumFilter",unique("album"),"Todos los álbumes");
@@ -309,9 +312,9 @@ function renderArtists(){
   const profile=artistProfileFor(name);
   const avatar=profile?.avatar_url?'<img src="'+escapeAttr(profile.avatar_url)+'" alt="" loading="lazy">':'<span>'+escapeHtml(name.slice(0,1).toUpperCase())+'</span>';
   return '<button class="nova-artist-card" type="button" data-artist-profile="'+escapeAttr(name)+'"><span class="nova-artist-avatar">'+avatar+'</span><span class="nova-artist-meta"><b>'+escapeHtml(name)+'</b><small>'+(profile?.genre?escapeHtml(profile.genre)+' · ':'')+count+' '+(count===1?'canción':'canciones')+'</small></span><span class="nova-artist-arrow">↗</span></button>';
- }).join("")+(names.length>artistVisibleCount?'<button type="button" class="outline-btn" id="loadMoreArtists">Ver más artistas</button>':"");
+ }).join("")+(novaIsIOS&&names.length>artistVisibleCount?'<button type="button" class="outline-btn" id="loadMoreArtists">Ver más artistas</button>':"");
  grid.querySelectorAll("[data-artist-profile]").forEach(button=>button.onclick=()=>openArtistProfile(button.dataset.artistProfile));
- const more=grid.querySelector("#loadMoreArtists");if(more)more.onclick=()=>{artistVisibleCount+=40;renderArtists();};
+ const more=grid.querySelector("#loadMoreArtists");if(more)more.onclick=()=>{artistVisibleCount+=artistPageSize;renderArtists();};
 }
 async function loadArtistProfiles(){
  if(!supabase||!memberApproved)return;
@@ -361,8 +364,8 @@ function renderTracks(){
 return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${t.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${idx}">▶</button></div><div class="track-info"><b>${escapeHtml(t.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(t.id)}">${favoriteTracks.includes(t.id)?"❤️":"🤍"} Favorito</button><button data-play="${idx}">▶ Escuchar</button>${downloadsAllowed?'<a href="#" data-download="'+escapeAttr(t.id)+'">↓ Descargar</a>':'<button type="button" class="download-locked" disabled title="El administrador todavía no ha autorizado las descargas">🔒 Descarga no autorizada</button>'}<button data-add="${idx}">＋ Playlist</button><button data-queue="${idx}">＋ Cola</button><button data-comments="${escapeAttr(t.id)}">💬 Comentarios</button><button data-report="${escapeAttr(t.id)}">⚑ Reportar</button>${adminVerified?`<button class="admin-delete-song" data-delete-song="${escapeAttr(t.id)}">🗑 Eliminar</button>`:""}</div></div></article>`;
 
   
- }).join("")+(shown.length>libraryVisibleCount?'<button type="button" class="outline-btn" id="loadMoreTracks">Cargar más canciones</button>':""):`<div class="empty-state"><div class="empty-icon">♫</div><h3>${tracks.length?"No encontramos esa canción":"Tu escenario está listo"}</h3><p>${tracks.length?"Prueba con otro nombre, artista o álbum.":"Las canciones que publiques aparecerán aquí."}</p></div>`;
- const loadMore=$("loadMoreTracks");if(loadMore)loadMore.onclick=()=>{libraryVisibleCount+=30;renderTracks();};
+ }).join("")+(novaIsIOS&&shown.length>libraryVisibleCount?'<button type="button" class="outline-btn" id="loadMoreTracks">Cargar más canciones</button>':""):`<div class="empty-state"><div class="empty-icon">♫</div><h3>${tracks.length?"No encontramos esa canción":"Tu escenario está listo"}</h3><p>${tracks.length?"Prueba con otro nombre, artista o álbum.":"Las canciones que publiques aparecerán aquí."}</p></div>`;
+ const loadMore=$("loadMoreTracks");if(loadMore)loadMore.onclick=()=>{libraryVisibleCount+=libraryPageSize;renderTracks();};
  document.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>playTrack(Number(b.dataset.play)));
  document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addTrackToPlaylist(Number(b.dataset.add)));
  document.querySelectorAll("[data-queue]").forEach(b=>b.onclick=()=>addToQueue(Number(b.dataset.queue)));
