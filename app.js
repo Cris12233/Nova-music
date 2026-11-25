@@ -48,6 +48,9 @@ audio.addEventListener("ended",()=>{
  if(trackIndex!==-1)playTrack(trackIndex);
 });
 let tracks = [], currentIndex = -1, playlists = JSON.parse(localStorage.getItem("nova_playlists") || "[]");
+// Renderizado progresivo para evitar que Safari/iOS se quede sin memoria con bibliotecas grandes.
+let libraryVisibleCount=30;
+let artistVisibleCount=40;
 let currentSession = null;
 let memberApproved = false;
 let downloadsAllowed = false;
@@ -266,7 +269,7 @@ function renderLibraryFilters(){
   const previous=select.value;
   select.innerHTML='<option value="">'+placeholder+'</option>'+values.map(value=>'<option value="'+escapeAttr(value)+'">'+escapeHtml(value)+'</option>').join("");
   select.value=values.includes(previous)?previous:"";
-  if(!select.dataset.bound){select.addEventListener("change",renderTracks);select.dataset.bound="1";}
+  if(!select.dataset.bound){select.addEventListener("change",()=>{libraryVisibleCount=30;renderTracks();});select.dataset.bound="1";}
  };
  fill("artistFilter",unique("artist"),"Todos los artistas");
  fill("albumFilter",unique("album"),"Todos los álbumes");
@@ -297,14 +300,18 @@ function artistProfileFor(name){
 }
 function renderArtists(){
  const grid=$("artistGrid");if(!grid)return;
- const names=[...new Set(tracks.map(track=>(track.artist||"").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
+ const counts=new Map();
+ tracks.forEach(track=>{const name=(track.artist||"").trim();if(name){const key=name.toLowerCase();const item=counts.get(key)||{name,count:0};item.count++;counts.set(key,item);}});
+ const names=[...counts.values()].sort((a,b)=>a.name.localeCompare(b.name,"es",{sensitivity:"base"}));
  if(!names.length){grid.innerHTML='<p class="muted-text">Todavía no hay artistas identificados en la colección.</p>';return;}
- grid.innerHTML=names.map(name=>{
-  const profile=artistProfileFor(name),count=tracks.filter(track=>(track.artist||"").trim().toLowerCase()===name.toLowerCase()).length;
+ const visibleNames=names.slice(0,artistVisibleCount);
+ grid.innerHTML=visibleNames.map(({name,count})=>{
+  const profile=artistProfileFor(name);
   const avatar=profile?.avatar_url?'<img src="'+escapeAttr(profile.avatar_url)+'" alt="" loading="lazy">':'<span>'+escapeHtml(name.slice(0,1).toUpperCase())+'</span>';
   return '<button class="nova-artist-card" type="button" data-artist-profile="'+escapeAttr(name)+'"><span class="nova-artist-avatar">'+avatar+'</span><span class="nova-artist-meta"><b>'+escapeHtml(name)+'</b><small>'+(profile?.genre?escapeHtml(profile.genre)+' · ':'')+count+' '+(count===1?'canción':'canciones')+'</small></span><span class="nova-artist-arrow">↗</span></button>';
- }).join("");
+ }).join("")+(names.length>artistVisibleCount?'<button type="button" class="outline-btn" id="loadMoreArtists">Ver más artistas</button>':"");
  grid.querySelectorAll("[data-artist-profile]").forEach(button=>button.onclick=()=>openArtistProfile(button.dataset.artistProfile));
+ const more=grid.querySelector("#loadMoreArtists");if(more)more.onclick=()=>{artistVisibleCount+=40;renderArtists();};
 }
 async function loadArtistProfiles(){
  if(!supabase||!memberApproved)return;
@@ -345,7 +352,8 @@ function renderTracks(){
  if(sort==="title")shown=shown.slice().sort((a,b)=>a.title.localeCompare(b.title,"es",{sensitivity:"base"}));
  if(sort==="artist")shown=shown.slice().sort((a,b)=>(a.artist||"").localeCompare(b.artist||"","es",{sensitivity:"base"}));
  $("trackCount").textContent=tracks.length;
- $("trackGrid").innerHTML=shown.length?shown.map(t=>{
+ const visible=shown.slice(0,libraryVisibleCount);
+ $("trackGrid").innerHTML=shown.length?visible.map(t=>{
   const idx=tracks.indexOf(t), cover=t.cover_url?`background-image:url('${escapeAttr(t.cover_url)}')`:"";
   const subtitle=[t.artist||"Artista desconocido",t.album].filter(Boolean).join(" · ");
   
@@ -353,7 +361,8 @@ function renderTracks(){
 return `<article class="track-card"><div class="cover" style="${cover}"><span class="cover-symbol" ${t.cover_url?'style="display:none"':''}>♫</span><button class="card-play" data-play="${idx}">▶</button></div><div class="track-info"><b>${escapeHtml(t.title)}</b><span>${escapeHtml(subtitle)}</span><div class="track-actions"><button data-favorite="${escapeAttr(t.id)}">${favoriteTracks.includes(t.id)?"❤️":"🤍"} Favorito</button><button data-play="${idx}">▶ Escuchar</button>${downloadsAllowed?'<a href="#" data-download="'+escapeAttr(t.id)+'">↓ Descargar</a>':'<button type="button" class="download-locked" disabled title="El administrador todavía no ha autorizado las descargas">🔒 Descarga no autorizada</button>'}<button data-add="${idx}">＋ Playlist</button><button data-queue="${idx}">＋ Cola</button><button data-comments="${escapeAttr(t.id)}">💬 Comentarios</button><button data-report="${escapeAttr(t.id)}">⚑ Reportar</button>${adminVerified?`<button class="admin-delete-song" data-delete-song="${escapeAttr(t.id)}">🗑 Eliminar</button>`:""}</div></div></article>`;
 
   
- }).join(""):`<div class="empty-state"><div class="empty-icon">♫</div><h3>${tracks.length?"No encontramos esa canción":"Tu escenario está listo"}</h3><p>${tracks.length?"Prueba con otro nombre, artista o álbum.":"Las canciones que publiques aparecerán aquí."}</p></div>`;
+ }).join("")+(shown.length>libraryVisibleCount?'<button type="button" class="outline-btn" id="loadMoreTracks">Cargar más canciones</button>':""):`<div class="empty-state"><div class="empty-icon">♫</div><h3>${tracks.length?"No encontramos esa canción":"Tu escenario está listo"}</h3><p>${tracks.length?"Prueba con otro nombre, artista o álbum.":"Las canciones que publiques aparecerán aquí."}</p></div>`;
+ const loadMore=$("loadMoreTracks");if(loadMore)loadMore.onclick=()=>{libraryVisibleCount+=30;renderTracks();};
  document.querySelectorAll("[data-play]").forEach(b=>b.onclick=()=>playTrack(Number(b.dataset.play)));
  document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>addTrackToPlaylist(Number(b.dataset.add)));
  document.querySelectorAll("[data-queue]").forEach(b=>b.onclick=()=>addToQueue(Number(b.dataset.queue)));
@@ -647,7 +656,7 @@ audio.addEventListener("playing",()=>{
 $("seek").oninput=()=>{if(audio.duration)audio.currentTime=Number($("seek").value)/100*audio.duration};
 $("volume").oninput=()=>audio.volume=Number($("volume").value);
 audio.onended=null;
-$("search").oninput=renderTracks;
+$("search").oninput=()=>{libraryVisibleCount=30;renderTracks();};
 
 async function deleteSong(songId){
  if(!adminVerified||!currentSession)return toast("Solo el administrador puede eliminar canciones.");
