@@ -1317,11 +1317,12 @@ $("bulkUploadBtn").onclick=async()=>{
    const megaResult=await megaResponse.json();
 
    if(!megaResponse.ok||!megaResult.success){
-    throw new Error(megaResult.error||"No se pudo subir a MEGA");
+    throw new Error(megaResult.error||"No se pudo subir al almacenamiento");
    }
 
-   const audioUrl=megaResult.mega_url;
-   const audioPath=megaResult.mega_file_id?`mega:${megaResult.mega_file_id}`:null;
+   const audioUrl=megaResult.audio_url||megaResult.mega_url;
+   const audioPath=megaResult.audio_path||(megaResult.mega_file_id?`mega:${megaResult.mega_file_id}`:null);
+   if(!audioUrl||!audioPath)throw new Error("El servidor no devolvió los datos del audio.");
 
    updateQueue(i,"Guardando información…","working");
 
