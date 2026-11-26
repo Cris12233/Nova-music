@@ -1320,8 +1320,9 @@ $("bulkUploadBtn").onclick=async()=>{
     throw new Error(megaResult.error||"No se pudo subir a MEGA");
    }
 
-   const audioUrl=megaResult.mega_url;
-   const audioPath=megaResult.mega_file_id?`mega:${megaResult.mega_file_id}`:null;
+   const audioUrl=megaResult.audio_url||megaResult.mega_url;
+   const audioPath=megaResult.audio_path||(megaResult.mega_file_id?`mega:${megaResult.mega_file_id}`:null);
+   if(!audioUrl||!audioPath)throw new Error("El servidor no devolvió los datos del audio.");
 
    updateQueue(i,"Guardando información…","working");
 
