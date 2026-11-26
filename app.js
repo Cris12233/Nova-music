@@ -742,7 +742,7 @@ function showSession(session){
 async function checkMegaStatus(session){
  $("adminMessage").textContent="Comprobando permisos de administrador…";
  try{
-  const response=await fetch("https://nova-mega-server.de.deplexo.com/mega-status",{
+  const response=await fetch("https://nova-mega-server.de.deplexo.com/admin-status",{
    headers:{Authorization:`Bearer ${session.access_token}`}
   });
   const result=await response.json();
@@ -750,7 +750,7 @@ async function checkMegaStatus(session){
   adminVerified=true;
   $("authForm").classList.add("hidden");
   $("uploadPanel").classList.remove("hidden");
-  $("adminMessage").textContent="¡MEGA conectado correctamente!";
+  $("adminMessage").textContent="Administrador verificado correctamente.";
   // La biblioteca puede haberse renderizado antes de confirmar al administrador.
   // Volvemos a dibujarla para mostrar las acciones exclusivas del administrador.
   if(memberApproved)renderTracks();
