@@ -1317,7 +1317,7 @@ $("bulkUploadBtn").onclick=async()=>{
    const megaResult=await megaResponse.json();
 
    if(!megaResponse.ok||!megaResult.success){
-    throw new Error(megaResult.error||"No se pudo subir a MEGA");
+    throw new Error(megaResult.error||"No se pudo subir al almacenamiento");
    }
 
    const audioUrl=megaResult.audio_url||megaResult.mega_url;
