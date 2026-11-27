@@ -698,7 +698,7 @@ async function loadMegaMigrationPreview(){
   const response=await fetch(`${NOVA_API_BASE}/admin/mega-migration`,{headers:{Authorization:"Bearer "+currentSession.access_token}});
   const result=await response.json();
   if(!response.ok)throw new Error(result.error||"No se pudo consultar MEGA");
-  status.textContent=result.total? `Se encontraron ${result.total} canciones que siguen en MEGA. La prueba copiará solo una.`:"No se encontraron canciones con enlaces de MEGA.";
+  status.textContent=result.total? `Se encontraron ${result.total} canciones que siguen en MEGA. Puedes copiarlas una por una o usar “Copiar todas a Evogb”.`:"No se encontraron canciones con enlaces de MEGA.";
   if(!result.total)return;
   list.innerHTML=result.songs.map(song=>`<div class="member-directory-summary"><b>${escapeHtml(song.title||"Canción sin título")}</b><span>${escapeHtml([song.artist,song.album].filter(Boolean).join(" · "))}</span><button class="outline-btn" type="button" data-migrate-mega="${escapeAttr(song.id)}">Copiar esta canción a Evogb</button></div>`).join("");
  }catch(error){status.textContent=error.message||"No se pudo preparar la migración.";}
