@@ -690,6 +690,42 @@ async function deleteSong(songId){
  }catch(error){toast(error.message||"No se pudo eliminar la canción.");}
 }
 
+async function loadMegaMigrationPreview(){
+ const status=$("megaMigrationStatus"),list=$("megaMigrationList");
+ if(!adminVerified||!currentSession){if(status)status.textContent="Inicia sesión como administrador.";return;}
+ status.textContent="Buscando canciones en MEGA…";list.innerHTML="";
+ try{
+  const response=await fetch(`${NOVA_API_BASE}/admin/mega-migration`,{headers:{Authorization:"Bearer "+currentSession.access_token}});
+  const result=await response.json();
+  if(!response.ok)throw new Error(result.error||"No se pudo consultar MEGA");
+  status.textContent=result.total? `Se encontraron ${result.total} canciones que siguen en MEGA. La prueba copiará solo una.`:"No se encontraron canciones con enlaces de MEGA.";
+  if(!result.total)return;
+  list.innerHTML=result.songs.map(song=>`<div class="member-directory-summary"><b>${escapeHtml(song.title||"Canción sin título")}</b><span>${escapeHtml([song.artist,song.album].filter(Boolean).join(" · "))}</span><button class="outline-btn" type="button" data-migrate-mega="${escapeAttr(song.id)}">Copiar esta canción a Evogb</button></div>`).join("");
+ }catch(error){status.textContent=error.message||"No se pudo preparar la migración.";}
+}
+
+async function migrateOneMegaSong(songId,button){
+ if(!adminVerified||!currentSession)return toast("Solo el administrador puede migrar canciones.");
+ if(!confirm("Se copiará esta canción de MEGA a Evogb. El archivo original de MEGA no se borrará ni modificará. ¿Continuar?"))return;
+ button.disabled=true;button.textContent="Copiando y verificando…";
+ const status=$("megaMigrationStatus");
+ status.textContent="Descargando desde MEGA y creando la copia en Evogb. No cierres esta ventana…";
+ try{
+  const response=await fetch(`${NOVA_API_BASE}/admin/mega-migration/${encodeURIComponent(songId)}`,{
+   method:"POST",headers:{Authorization:"Bearer "+currentSession.access_token}
+  });
+  const result=await response.json();
+  if(!response.ok||!result.success)throw new Error(result.error||"No se pudo completar la copia.");
+  status.textContent=`¡Copia verificada! “${result.title||"Canción"}” ya usa Evogb en NOVA MUSIC. El original de MEGA se conservó intacto.`;
+  toast("Canción copiada correctamente a Evogb.");
+  await loadMegaMigrationPreview();
+  await loadTracks();
+ }catch(error){
+  status.textContent=error.message||"Falló la copia. El enlace original de MEGA no se modificó.";
+  button.disabled=false;button.textContent="Reintentar copia";
+ }
+}
+
 async function loadTracks(){
  if(!memberApproved)return;
  if(!supabase){$("trackGrid").innerHTML='<div class="empty-state"><div class="empty-icon">⚙</div><h3>Falta conectar Supabase</h3><p>Abre README.txt y sigue los pasos para activar tu biblioteca musical.</p></div>';return}
@@ -1475,6 +1511,11 @@ async function updateBulkPrecheck(){
   `Canciones nuevas: ${newSongs} | Duplicadas: ${duplicates} | Archivos no compatibles: ${rejected} | Mayores de 100 MB: ${tooLarge.length}`;
 }
 
+$("refreshMegaMigration")?.addEventListener("click",loadMegaMigrationPreview);
+$("megaMigrationList")?.addEventListener("click",event=>{
+ const button=event.target.closest("[data-migrate-mega]");
+ if(button)void migrateOneMegaSong(button.dataset.migrateMega,button);
+});
 $("bulkFiles").addEventListener("change",updateBulkPrecheck);
 $("folderFiles").addEventListener("change",updateBulkPrecheck);
 $("bulkArtist").addEventListener("change",()=>{void prepareBulkMetadata();void updateBulkPrecheck();});
