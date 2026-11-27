@@ -247,6 +247,11 @@
           <div class="member-requests-head"><div><b>Historial de inicios de sesión</b><span>Últimos accesos verificados de los miembros.</span></div><button id="refreshAdminLoginHistory" class="outline-btn" type="button">Actualizar</button></div>
           <div id="adminLoginHistoryList"><p class="muted-text">Cargando accesos…</p></div>
         </section>
+        <section id="megaMigrationPanel" class="admin-insights">
+          <div class="member-requests-head"><div><b>Copia de seguridad MEGA → Evogb</b><span>Copia canciones antiguas sin borrar ni modificar los originales de MEGA.</span></div><button class="outline-btn" id="refreshMegaMigration" type="button">Buscar canciones</button></div>
+          <p id="megaMigrationStatus" class="muted-text">Pulsa “Buscar canciones” para localizar las canciones que siguen en MEGA.</p>
+          <div id="megaMigrationList"></div>
+        </section>
         <div class="bulk-intro"><b>Subida masiva</b><span>Agrega canciones sueltas o un álbum completo en una sola operación.</span></div>
         <label>Opción 1 · Seleccionar canciones (MP3, WAV, M4A y más)</label>
         <input id="bulkFiles" type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac" multiple>
