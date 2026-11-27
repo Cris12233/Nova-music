@@ -726,6 +726,49 @@ async function migrateOneMegaSong(songId,button){
  }
 }
 
+async function migrateAllMegaSongs(){
+ if(!adminVerified||!currentSession)return toast("Solo el administrador puede migrar canciones.");
+ if(!confirm("Se copiarán automáticamente todas las canciones que todavía estén en MEGA, una por una. Los originales no se borrarán. Las canciones mayores de 200 MB o con errores quedarán pendientes. ¿Continuar?"))return;
+ const button=$("migrateAllMega"),refresh=$("refreshMegaMigration"),status=$("megaMigrationStatus"),list=$("megaMigrationList");
+ if(button) {button.disabled=true;button.textContent="Copiando colección…";}
+ if(refresh)refresh.disabled=true;
+ if(list)list.innerHTML="";
+ let success=0,failed=0,processed=0;
+ try{
+  status.textContent="Preparando la lista completa de canciones que siguen en MEGA…";
+  const previewResponse=await fetch(`${NOVA_API_BASE}/admin/mega-migration`,{headers:{Authorization:"Bearer "+currentSession.access_token}});
+  const preview=await previewResponse.json();
+  if(!previewResponse.ok)throw new Error(preview.error||"No se pudo consultar la lista de MEGA.");
+  const songs=Array.isArray(preview.songs)?preview.songs:[];
+  if(!songs.length){status.textContent="No hay canciones pendientes en MEGA.";return;}
+  status.textContent=`Se encontraron ${songs.length} canciones. Iniciando copia automática, una por una…`;
+  for(const song of songs){
+   processed++;
+   status.textContent=`Copiando ${processed} de ${songs.length}: ${song.title||"Canción sin título"}… No cierres esta ventana.`;
+   try{
+    const response=await fetch(`${NOVA_API_BASE}/admin/mega-migration/${encodeURIComponent(song.id)}`,{
+     method:"POST",headers:{Authorization:"Bearer "+currentSession.access_token}
+    });
+    const result=await response.json().catch(()=>({error:"El servidor devolvió una respuesta no válida."}));
+    if(!response.ok||!result.success)throw new Error(result.error||"No se pudo completar la copia.");
+    success++;
+   }catch(error){
+    failed++;
+    console.warn("NOVA MEGA migration failed:",song.title,error.message);
+   }
+  }
+  status.textContent=`Proceso terminado: ${success} canción(es) copiadas y verificadas; ${failed} pendiente(s) por error, de ${songs.length} encontradas. Los originales de MEGA se conservaron. Puedes volver a ejecutar la opción para reintentar las pendientes.`;
+  if(success)toast(`${success} canción(es) copiadas a Evogb.`);
+  await loadTracks();
+  await loadMegaMigrationPreview();
+ }catch(error){
+  status.textContent=error.message||"No se pudo iniciar la migración.";
+ }finally{
+  if(button){button.disabled=false;button.textContent="Copiar todas a Evogb";}
+  if(refresh)refresh.disabled=false;
+ }
+}
+
 async function loadTracks(){
  if(!memberApproved)return;
  if(!supabase){$("trackGrid").innerHTML='<div class="empty-state"><div class="empty-icon">⚙</div><h3>Falta conectar Supabase</h3><p>Abre README.txt y sigue los pasos para activar tu biblioteca musical.</p></div>';return}
@@ -1512,6 +1555,7 @@ async function updateBulkPrecheck(){
 }
 
 $("refreshMegaMigration")?.addEventListener("click",loadMegaMigrationPreview);
+$("migrateAllMega")?.addEventListener("click",()=>void migrateAllMegaSongs());
 $("megaMigrationList")?.addEventListener("click",event=>{
  const button=event.target.closest("[data-migrate-mega]");
  if(button)void migrateOneMegaSong(button.dataset.migrateMega,button);
