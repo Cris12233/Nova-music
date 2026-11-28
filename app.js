@@ -692,16 +692,17 @@ async function deleteSong(songId){
 
 async function loadMegaMigrationPreview(){
  const status=$("megaMigrationStatus"),list=$("megaMigrationList");
- if(!adminVerified||!currentSession){if(status)status.textContent="Inicia sesión como administrador.";return;}
+ if(!adminVerified||!currentSession){if(status)status.textContent="Inicia sesión como administrador.";return false;}
  status.textContent="Buscando canciones en MEGA…";list.innerHTML="";
  try{
   const response=await fetch(`${NOVA_API_BASE}/admin/mega-migration`,{headers:{Authorization:"Bearer "+currentSession.access_token}});
   const result=await response.json();
   if(!response.ok)throw new Error(result.error||"No se pudo consultar MEGA");
   status.textContent=result.total? `Se encontraron ${result.total} canciones que siguen en MEGA. Puedes copiarlas una por una o usar “Copiar todas a Evogb”.`:"No se encontraron canciones con enlaces de MEGA.";
-  if(!result.total)return;
+  if(!result.total)return true;
   list.innerHTML=result.songs.map(song=>`<div class="member-directory-summary"><b>${escapeHtml(song.title||"Canción sin título")}</b><span>${escapeHtml([song.artist,song.album].filter(Boolean).join(" · "))}</span><button class="outline-btn" type="button" data-migrate-mega="${escapeAttr(song.id)}">Copiar esta canción a Evogb</button></div>`).join("");
- }catch(error){status.textContent=error.message||"No se pudo preparar la migración.";}
+  return true;
+ }catch(error){status.textContent=error.message||"No se pudo preparar la migración.";return false;}
 }
 
 async function migrateOneMegaSong(songId,button){
@@ -757,10 +758,10 @@ async function migrateAllMegaSongs(){
     console.warn("NOVA MEGA migration failed:",song.title,error.message);
    }
   }
-  status.textContent=`Proceso terminado: ${success} canción(es) copiadas y verificadas; ${failed} pendiente(s) por error, de ${songs.length} encontradas. Los originales de MEGA se conservaron. Puedes volver a ejecutar la opción para reintentar las pendientes.`;
   if(success)toast(`${success} canción(es) copiadas a Evogb.`);
   await loadTracks();
-  await loadMegaMigrationPreview();
+  const previewUpdated=await loadMegaMigrationPreview();
+  status.textContent=`Proceso terminado: ${success} canción(es) copiadas y verificadas; ${failed} pendiente(s) por error, de ${songs.length} encontradas. Los originales de MEGA se conservaron. Puedes volver a ejecutar la opción para reintentar las pendientes.${previewUpdated?"":" No se pudo actualizar la lista final; pulsa “Buscar canciones” para consultar las pendientes."}`;
  }catch(error){
   status.textContent=error.message||"No se pudo iniciar la migración.";
  }finally{
